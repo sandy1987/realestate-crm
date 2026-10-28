@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Environment — never commit real secrets
+.env
+.env.local
+.env.*.local
+
+# MongoDB memory server binary cache
+.mongo-binaries/
+
+# Coverage output
+coverage/
+
+# Logs
+*.log
+logs/
+
+# Build output
+dist/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel/
+
