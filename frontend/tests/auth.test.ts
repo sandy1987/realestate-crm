@@ -138,7 +138,7 @@ describe('Frontend Phase 2 — Authentication & Token Lifecycle Tests', () => {
       // First 2 calls with 'expired-access-token' return 401
       // Refresh call returns new tokens
       // Retried calls with 'new-access-token' succeed
-      global.fetch = vi.fn().mockImplementation(async (url, init) => {
+      global.fetch = vi.fn().mockImplementation(async (url: any, init?: any) => {
         const urlStr = String(url);
         const headers = new Headers(init?.headers);
         const authHeader = headers.get('Authorization');
@@ -224,7 +224,7 @@ describe('Frontend Phase 2 — Authentication & Token Lifecycle Tests', () => {
         authExpiredNotified = true;
       });
 
-      global.fetch = vi.fn().mockImplementation(async (url) => {
+      global.fetch = vi.fn().mockImplementation(async (url: any) => {
         const urlStr = String(url);
         if (urlStr.includes('/auth/refresh')) {
           return {
@@ -266,7 +266,7 @@ describe('Frontend Phase 2 — Authentication & Token Lifecycle Tests', () => {
       tokenManager.setTokens('valid-access-token', 'valid-refresh-token');
 
       let refreshAttempted = false;
-      global.fetch = vi.fn().mockImplementation(async (url) => {
+      global.fetch = vi.fn().mockImplementation(async (url: any) => {
         const urlStr = String(url);
         if (urlStr.includes('/auth/refresh')) {
           refreshAttempted = true;
