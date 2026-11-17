@@ -1,14 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
+import { plotsApi } from '@/lib/api/plots';
+import { coloniesApi } from '@/lib/api/colonies';
+import { auditApi } from '@/lib/api/audit';
+import { Plot } from '@/types/plot';
+import { Colony } from '@/types/colony';
+import { AuditLog } from '@/types/audit';
 import { MetricCard } from '@/components/shared/MetricCard';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Loading';
 import { formatCurrency, formatArea, formatDate } from '@/lib/utils/formatters';
 import {
   Landmark,
@@ -16,74 +25,118 @@ import {
   CheckCircle2,
   Clock,
   PlusCircle,
-  Users,
   ShieldCheck,
   Building,
   ExternalLink,
+  Activity,
+  UserCheck,
 } from 'lucide-react';
 
-export default function DashboardPage() {
-  const { user } = useAuth();
-  // Sample data clearly labeled as development preview
-  const samplePlots = [
-    {
-      id: 'PLT-101',
-      colony: 'Green Meadows Phase 2',
-      size: 250,
-      sizeUnit: 'sqyd',
-      price: 3750000,
-      status: 'available',
-      updatedAt: '2026-10-25T10:00:00.000Z',
-    },
-    {
-      id: 'PLT-102',
-      colony: 'Green Meadows Phase 2',
-      size: 300,
-      sizeUnit: 'sqyd',
-      price: 4500000,
-      status: 'booked',
-      updatedAt: '2026-10-24T14:30:00.000Z',
-    },
-    {
-      id: 'PLT-204',
-      colony: 'Royal Palms Enclave',
-      size: 500,
-      sizeUnit: 'sqyd',
-      price: 9000000,
-      status: 'sold',
-      updatedAt: '2026-10-22T09:15:00.000Z',
-    },
-    {
-      id: 'PLT-309',
-      colony: 'Silver Oaks Residency',
-      size: 180,
-      sizeUnit: 'sqyd',
-      price: 2700000,
-      status: 'blocked',
-      updatedAt: '2026-10-20T16:45:00.000Z',
-    },
-  ];
+function formatEventTitle(eventType: string): string {
+  const titles: Record<string, string> = {
+    'platform.firm.provisioned': 'Tenant Firm Created',
+    'platform.firm.updated': 'Tenant Firm Updated',
+    'platform.firm.suspended': 'Firm Suspended',
+    'platform.firm.activated': 'Firm Activated',
+    'auth.login.success': 'User Signed In',
+    'auth.login.failure': 'Failed Login Attempt',
+    'auth.logout': 'User Signed Out',
+    'auth.password.changed': 'Password Changed',
+    'user.created': 'User Account Created',
+    'user.updated': 'User Account Updated',
+    'colony.created': 'New Colony Created',
+    'colony.updated': 'Colony Updated',
+    'colony.deleted': 'Colony Deleted',
+    'plot.created': 'New Plot Created',
+    'plot.updated': 'Plot Details Updated',
+    'plot.deleted': 'Plot Deactivated',
+    'plot.exported': 'Plots Exported',
+    'plot.private.read': 'Confidential Data Accessed',
+    'plot.private.upsert': 'Owner Record Saved',
+    'plot.private.deleted': 'Owner Record Removed',
+  };
+  return (
+    titles[eventType] ||
+    eventType
+      .replace(/\./g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+  );
+}
 
-  const sampleActivities = [
-    {
-      title: 'Colony Created',
-      desc: 'Royal Palms Enclave added to inventory by Admin',
-      time: '2 hours ago',
-      icon: MapPin,
-    },
-    {
-      title: 'Plot Status Updated',
-      desc: 'Plot PLT-102 marked as Booked',
-      time: 'Yesterday at 4:30 PM',
-      icon: Landmark,
-    },
-    {
-      title: 'User Access Granted',
-      desc: 'Staff account created for sales executive',
-      time: '3 days ago',
-      icon: Users,
-    },
-  ];
+export default function DashboardPage() {
+  const router = useRouter();
+  const { user } = useAuth();
+
+  const [plots, setPlots] = useState<Plot[]>([]);
+  const [colonies, setColonies] = useState<Colony[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Aggregate stats
+  const [totalPlots, setTotalPlots] = useState(0);
+  const [activeColoniesCount, setActiveColoniesCount] = useState(0);
+  const [availableCount, setAvailableCount] = useState(0);
+  const [bookedSoldCount, setBookedSoldCount] = useState(0);
+
+  const loadDashboardData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // 1. Fetch plots & colonies in parallel
+      const [plotsRes, coloniesRes] = await Promise.allSettled([
+        plotsApi.listPlots({ limit: 100, sortBy: 'updatedAt', sortOrder: 'desc' }),
+        coloniesApi.listColonies({ limit: 100 }),
+      ]);
+
+      let fetchedPlots: Plot[] = [];
+      let fetchedColonies: Colony[] = [];
+
+      if (plotsRes.status === 'fulfilled') {
+        fetchedPlots = plotsRes.value.data || [];
+        setPlots(fetchedPlots.slice(0, 5)); // 5 most recent for the table
+
+        const total = plotsRes.value.meta?.total ?? fetchedPlots.length;
+        setTotalPlots(total);
+
+        const available = fetchedPlots.filter((p) => p.status === 'available').length;
+        const bookedSold = fetchedPlots.filter(
+          (p) => p.status === 'sold' || p.status === 'reserved' || (p.status as string) === 'booked'
+        ).length;
+
+        setAvailableCount(available);
+        setBookedSoldCount(bookedSold);
+      }
+
+      if (coloniesRes.status === 'fulfilled') {
+        fetchedColonies = coloniesRes.value.data || [];
+        setColonies(fetchedColonies);
+        const active = fetchedColonies.filter((c) => c.isActive !== false).length;
+        setActiveColoniesCount(active);
+      }
+
+      // 2. Fetch recent audit logs safely
+      try {
+        const auditRes =
+          user?.role === 'SUPER_ADMIN'
+            ? await auditApi.listPlatformAuditLogs({ limit: 4 })
+            : await auditApi.listFirmAuditLogs({ limit: 4 });
+
+        if (auditRes?.data) {
+          setAuditLogs(auditRes.data);
+        }
+      } catch {
+        // Safe fallback if audit read permission is not assigned to current role
+        setAuditLogs([]);
+      }
+    } catch {
+      // Keep graceful empty dashboard on unexpected errors
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   return (
     <div className="space-y-8">
@@ -143,34 +196,35 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Total Plots"
-          value="148"
-          subtitle="Across 6 active colonies"
+          value={isLoading ? '—' : totalPlots}
+          subtitle={`Across ${activeColoniesCount} active colonies`}
           icon={<Landmark className="h-5 w-5" />}
-          trend={{ value: 12, isPositive: true }}
-          isSampleData
         />
         <MetricCard
           title="Active Colonies"
-          value="6"
-          subtitle="Residential & Mixed Use"
+          value={isLoading ? '—' : activeColoniesCount}
+          subtitle="Residential & Commercial"
           icon={<MapPin className="h-5 w-5" />}
-          isSampleData
         />
         <MetricCard
           title="Available Inventory"
-          value="82"
-          subtitle="55% of total inventory"
+          value={isLoading ? '—' : availableCount}
+          subtitle={
+            totalPlots > 0
+              ? `${Math.round((availableCount / totalPlots) * 100)}% of total inventory`
+              : 'Ready for allocation'
+          }
           icon={<CheckCircle2 className="h-5 w-5" />}
-          trend={{ value: 4, isPositive: true }}
-          isSampleData
         />
         <MetricCard
           title="Booked & Sold"
-          value="66"
-          subtitle="44% turnover rate"
+          value={isLoading ? '—' : bookedSoldCount}
+          subtitle={
+            totalPlots > 0
+              ? `${Math.round((bookedSoldCount / totalPlots) * 100)}% allocated`
+              : 'Inventory turnover'
+          }
           icon={<Clock className="h-5 w-5" />}
-          trend={{ value: 8, isPositive: true }}
-          isSampleData
         />
       </div>
 
@@ -181,14 +235,9 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-4">
               <div>
-                <div className="flex items-center gap-2">
-                  <CardTitle>Recent Plot Inventory</CardTitle>
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                    Sample Data
-                  </span>
-                </div>
+                <CardTitle>Recent Plot Inventory</CardTitle>
                 <CardDescription>
-                  Demonstration of table layout, status badges, and localized currency formatting.
+                  Overview of your firm&apos;s most recently updated plots.
                 </CardDescription>
               </div>
               <Link href="/plots">
@@ -198,36 +247,68 @@ export default function DashboardPage() {
               </Link>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Plot Ref</TableHead>
-                    <TableHead>Colony</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Total Price</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Updated</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {samplePlots.map((plot) => (
-                    <TableRow key={plot.id}>
-                      <TableCell className="font-semibold text-slate-900">{plot.id}</TableCell>
-                      <TableCell className="text-slate-600">{plot.colony}</TableCell>
-                      <TableCell>{formatArea(plot.size, plot.sizeUnit)}</TableCell>
-                      <TableCell className="font-medium text-slate-900">
-                        {formatCurrency(plot.price)}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={plot.status} />
-                      </TableCell>
-                      <TableCell className="text-xs text-slate-500">
-                        {formatDate(plot.updatedAt)}
-                      </TableCell>
+              {isLoading ? (
+                <div className="space-y-3 py-2">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : plots.length === 0 ? (
+                <EmptyState
+                  icon={<Landmark className="h-6 w-6 text-slate-400" />}
+                  title="No plots in inventory"
+                  description="Get started by creating your first colony and registering plots into your firm's inventory."
+                  actionLabel="Add First Plot"
+                  onAction={() => router.push('/plots')}
+                  className="my-4"
+                />
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Plot Ref</TableHead>
+                      <TableHead>Colony</TableHead>
+                      <TableHead>Size</TableHead>
+                      <TableHead>Total Price</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Updated</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {plots.map((plot) => {
+                      const colony = plot.colonyId
+                        ? colonies.find((c) => c.id === plot.colonyId || (c as any)._id === plot.colonyId)
+                        : null;
+
+                      const displayPrice =
+                        plot.totalPrice !== undefined && plot.totalPrice !== null
+                          ? formatCurrency(plot.totalPrice, plot.currency)
+                          : formatCurrency(plot.rate, plot.currency);
+
+                      return (
+                        <TableRow key={plot.id || (plot as any)._id}>
+                          <TableCell className="font-semibold text-slate-900">
+                            {plot.plotRef || plot.plotId}
+                          </TableCell>
+                          <TableCell className="text-slate-600">
+                            {colony?.name || '—'}
+                          </TableCell>
+                          <TableCell>{formatArea(plot.size, plot.sizeUnit)}</TableCell>
+                          <TableCell className="font-medium text-slate-900">
+                            {displayPrice}
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge status={plot.status} />
+                          </TableCell>
+                          <TableCell className="text-xs text-slate-500">
+                            {formatDate(plot.updatedAt)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -287,30 +368,41 @@ export default function DashboardPage() {
           {/* Recent Activity Card */}
           <Card>
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm">Audit Trail Activity</CardTitle>
-                <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
-                  Sample
-                </span>
-              </div>
-              <CardDescription>Logged operational events</CardDescription>
+              <CardTitle className="text-sm">Audit Trail Activity</CardTitle>
+              <CardDescription>Recently logged operational events</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {sampleActivities.map((act, i) => {
-                const Icon = act.icon;
-                return (
-                  <div key={i} className="flex items-start gap-3 text-xs">
+            <CardContent className="space-y-3">
+              {isLoading ? (
+                <div className="space-y-2 py-2">
+                  <Skeleton className="h-9 w-full" />
+                  <Skeleton className="h-9 w-full" />
+                </div>
+              ) : auditLogs.length === 0 ? (
+                <div className="py-6 text-center text-xs text-slate-400">
+                  <Activity className="h-5 w-5 mx-auto mb-1 text-slate-300" />
+                  No audit trail activity recorded yet.
+                </div>
+              ) : (
+                auditLogs.map((log) => (
+                  <div key={log.id} className="flex items-start gap-3 text-xs">
                     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-600 shrink-0 mt-0.5">
-                      <Icon className="h-3.5 w-3.5" />
+                      <Activity className="h-3.5 w-3.5" />
                     </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-slate-800">{act.title}</p>
-                      <p className="text-slate-500 text-[11px] mt-0.5">{act.desc}</p>
-                      <span className="text-[10px] text-slate-400 block mt-1">{act.time}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-800 truncate">
+                        {formatEventTitle(log.eventType)}
+                      </p>
+                      <p className="text-slate-500 text-[11px] mt-0.5 truncate">
+                        {log.actorRole ? `${log.actorRole} • ` : ''}
+                        {log.outcome === 'success' ? 'Completed successfully' : 'Failed attempt'}
+                      </p>
+                      <span className="text-[10px] text-slate-400 block mt-1">
+                        {formatDate(log.createdAt)}
+                      </span>
                     </div>
                   </div>
-                );
-              })}
+                ))
+              )}
             </CardContent>
           </Card>
         </div>
