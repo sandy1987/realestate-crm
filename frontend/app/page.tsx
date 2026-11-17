@@ -29,7 +29,6 @@ import {
   Building,
   ExternalLink,
   Activity,
-  UserCheck,
 } from 'lucide-react';
 
 function formatEventTitle(eventType: string): string {
@@ -99,7 +98,7 @@ export default function DashboardPage() {
 
         const available = fetchedPlots.filter((p) => p.status === 'available').length;
         const bookedSold = fetchedPlots.filter(
-          (p) => p.status === 'sold' || p.status === 'reserved' || (p.status as string) === 'booked'
+          (p) => p.status === 'sold' || p.status === 'reserved' || p.status === 'on_hold'
         ).length;
 
         setAvailableCount(available);
@@ -277,16 +276,16 @@ export default function DashboardPage() {
                   <TableBody>
                     {plots.map((plot) => {
                       const colony = plot.colonyId
-                        ? colonies.find((c) => c.id === plot.colonyId || (c as any)._id === plot.colonyId)
+                        ? colonies.find((c) => c.id === plot.colonyId || c._id === plot.colonyId)
                         : null;
 
-                      const displayPrice =
-                        plot.totalPrice !== undefined && plot.totalPrice !== null
-                          ? formatCurrency(plot.totalPrice, plot.currency)
-                          : formatCurrency(plot.rate, plot.currency);
+                      const calculatedTotal =
+                        plot.totalPrice ??
+                        (plot.rateType === 'per_unit' ? plot.rate * plot.size : plot.rate);
+                      const displayPrice = formatCurrency(calculatedTotal, plot.currency);
 
                       return (
-                        <TableRow key={plot.id || (plot as any)._id}>
+                        <TableRow key={plot.id || plot._id || plot.plotRef}>
                           <TableCell className="font-semibold text-slate-900">
                             {plot.plotRef || plot.plotId}
                           </TableCell>

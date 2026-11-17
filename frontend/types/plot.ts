@@ -51,6 +51,7 @@ export interface Plot {
   sizeUnit: PlotSizeUnit;
   rate: number;
   rateType: PlotRateType;
+  totalPrice?: number | null;
   currency: string;
   description: string | null;
   status: PlotStatus;
