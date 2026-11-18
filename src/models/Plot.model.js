@@ -61,10 +61,16 @@ const plotSchema = new mongoose.Schema(
       },
     },
 
+    dimensions: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Dimensions cannot exceed 100 characters'],
+      default: null,
+    },
+
     rate: {
-      type: Number,
+      type: mongoose.Schema.Types.Mixed,
       required: [true, 'Rate is required'],
-      min: [0, 'Rate cannot be negative'],
       default: 0,
     },
 
@@ -238,6 +244,7 @@ plotSchema.methods.toSafeObject = function () {
     plotDate: this.plotDate || null,
     size: this.size,
     sizeUnit: this.sizeUnit,
+    dimensions: this.dimensions || null,
     rate: this.rate,
     rateType: this.rateType,
     currency: this.currency || 'INR',

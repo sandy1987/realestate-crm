@@ -49,7 +49,8 @@ export interface Plot {
   plotDate: string | null;
   size: number;
   sizeUnit: PlotSizeUnit;
-  rate: number;
+  dimensions?: string | null;
+  rate: number | string;
   rateType: PlotRateType;
   totalPrice?: number | null;
   currency: string;
@@ -73,7 +74,8 @@ export interface CreatePlotInput {
   plotDate?: string | null;
   size: number;
   sizeUnit: PlotSizeUnit;
-  rate: number;
+  dimensions?: string | null;
+  rate: number | string;
   rateType?: PlotRateType;
   currency?: string;
   description?: string | null;
@@ -92,7 +94,8 @@ export interface UpdatePlotInput {
   plotDate?: string | null;
   size?: number;
   sizeUnit?: PlotSizeUnit;
-  rate?: number;
+  dimensions?: string | null;
+  rate?: number | string;
   rateType?: PlotRateType;
   currency?: string;
   description?: string | null;

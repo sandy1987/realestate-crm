@@ -71,7 +71,7 @@ export function StaffStatusModal({
       <DialogHeader>
         <div className={`flex items-center gap-2 mb-1 ${isSuspend ? 'text-amber-600' : 'text-emerald-600'}`}>
           {isSuspend ? <AlertTriangle className="h-5 w-5" /> : <CheckCircle className="h-5 w-5" />}
-          <DialogTitle>{isSuspend ? 'Suspend Staff Account' : 'Reactivate Staff Account'}</DialogTitle>
+          <DialogTitle>{isSuspend ? 'Suspend Advisor Account' : 'Reactivate Advisor Account'}</DialogTitle>
         </div>
         <DialogDescription>
           Confirm status transition for <strong className="text-slate-900">{targetUser.email}</strong>.
@@ -100,7 +100,7 @@ export function StaffStatusModal({
             <>
               <p className="font-semibold text-slate-800">Operational Effect of Suspension:</p>
               <p>
-                Suspending this user will immediately revoke all active refresh-token sessions and prevent them from
+                Suspending this advisor will immediately revoke all active refresh-token sessions and prevent them from
                 signing in or performing any tenant operations.
               </p>
             </>
@@ -108,7 +108,7 @@ export function StaffStatusModal({
             <>
               <p className="font-semibold text-slate-800">Operational Effect of Activation:</p>
               <p>
-                Reactivating this user restores their ability to log in and exercise their assigned permissions within your firm.
+                Reactivating this advisor restores their ability to log in and exercise their assigned permissions within your firm.
               </p>
             </>
           )}

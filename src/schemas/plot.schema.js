@@ -36,7 +36,11 @@ export const createPlotSchema = z
     sizeUnit: z.enum(PLOT_SIZE_UNITS, {
       errorMap: () => ({ message: `Invalid size unit. Must be one of: ${PLOT_SIZE_UNITS.join(', ')}` }),
     }),
-    rate: z.number({ required_error: 'Rate is required' }).min(0, 'Rate cannot be negative'),
+    dimensions: z.string().trim().max(100, 'Dimensions cannot exceed 100 characters').optional().nullable(),
+    rate: z.union([
+      z.number({ required_error: 'Rate is required' }),
+      z.string().trim().min(1, 'Rate cannot be empty'),
+    ]),
     rateType: z.enum(PLOT_RATE_TYPES).optional().default('total'),
     currency: z.string().trim().max(10).optional().default('INR'),
     description: z.string().trim().max(2000).optional().nullable(),
@@ -66,7 +70,8 @@ export const updatePlotSchema = z.object({
   plotDate: dateSchema.optional().nullable(),
   size: z.number().positive('Plot size must be greater than 0').optional(),
   sizeUnit: z.enum(PLOT_SIZE_UNITS).optional(),
-  rate: z.number().min(0, 'Rate cannot be negative').optional(),
+  dimensions: z.string().trim().max(100, 'Dimensions cannot exceed 100 characters').optional().nullable(),
+  rate: z.union([z.number(), z.string().trim().min(1)]).optional(),
   rateType: z.enum(PLOT_RATE_TYPES).optional(),
   currency: z.string().trim().max(10).optional(),
   description: z.string().trim().max(2000).optional().nullable(),

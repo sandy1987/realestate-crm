@@ -465,6 +465,11 @@ export default function PlotsPage() {
                       <span className="text-xs font-medium text-slate-800">
                         {formatArea(plot.size, plot.sizeUnit)}
                       </span>
+                      {plot.dimensions && (
+                        <span className="text-[10px] text-slate-500 block">
+                          {plot.dimensions}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <span className="text-xs font-semibold text-slate-800">

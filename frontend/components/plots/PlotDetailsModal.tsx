@@ -75,7 +75,10 @@ export function PlotDetailsModal({
             </span>
             <div className="flex items-center gap-1.5 font-semibold text-slate-800">
               <Maximize2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-              <span>{formatArea(plot.size, plot.sizeUnit)}</span>
+              <span>
+                {formatArea(plot.size, plot.sizeUnit)}
+                {plot.dimensions ? ` (${plot.dimensions})` : ''}
+              </span>
             </div>
           </div>
 

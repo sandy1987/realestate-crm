@@ -108,7 +108,7 @@ export function EditStaffModal({ open, onOpenChange, user, onSuccess }: EditStaf
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogHeader>
-        <DialogTitle>Edit User Profile</DialogTitle>
+        <DialogTitle>{isFirmAdmin ? 'Edit Administrator Profile' : 'Edit Advisor Profile'}</DialogTitle>
         <DialogDescription>
           Update profile details and permission grants for <strong className="text-slate-900">{user.email}</strong>.
         </DialogDescription>

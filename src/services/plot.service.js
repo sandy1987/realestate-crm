@@ -111,6 +111,7 @@ export async function createPlot({ firmId, data, userId, firmSettings }) {
     plotDate: data.plotDate ? new Date(data.plotDate) : null,
     size: data.size,
     sizeUnit: data.sizeUnit,
+    dimensions: data.dimensions ? data.dimensions.trim() : null,
     rate: data.rate,
     rateType: data.rateType || 'total',
     currency: data.currency || firmSettings?.defaultCurrency || 'INR',
@@ -387,6 +388,7 @@ export async function updatePlot({ plotId, firmId, data, userId, firmSettings })
   }
   if (data.size !== undefined) plot.size = data.size;
   if (data.sizeUnit !== undefined) plot.sizeUnit = data.sizeUnit;
+  if (data.dimensions !== undefined) plot.dimensions = data.dimensions ? data.dimensions.trim() : null;
   if (data.rate !== undefined) plot.rate = data.rate;
   if (data.rateType !== undefined) plot.rateType = data.rateType;
   if (data.currency !== undefined) plot.currency = data.currency;
@@ -481,15 +483,22 @@ export async function getPlotWhatsAppShare({ plotId, firmId, userId }) {
     ? `${colony.name}${colony.city ? `, ${colony.city}` : colony.location ? `, ${colony.location}` : ''}`
     : 'Direct / Independent';
 
-  const sizeStr = `${plot.size} ${(plot.sizeUnit || 'sqft').toUpperCase()}`;
+  const sizeStr = plot.dimensions
+    ? `${plot.size} ${(plot.sizeUnit || 'sqft').toUpperCase()} (Dimensions: ${plot.dimensions})`
+    : `${plot.size} ${(plot.sizeUnit || 'sqft').toUpperCase()}`;
 
   let rateStr = 'Contact for Price';
-  if (plot.rate) {
-    const currency = plot.currency || 'INR';
-    const formattedRate = Number(plot.rate).toLocaleString('en-IN');
-    rateStr = plot.rateType === 'per_unit'
-      ? `${currency} ${formattedRate} / ${plot.sizeUnit || 'sqft'}`
-      : `${currency} ${formattedRate} (Total)`;
+  if (plot.rate !== undefined && plot.rate !== null && plot.rate !== '') {
+    const isNum = !isNaN(Number(plot.rate));
+    if (isNum) {
+      const currency = plot.currency || 'INR';
+      const formattedRate = Number(plot.rate).toLocaleString('en-IN');
+      rateStr = plot.rateType === 'per_unit'
+        ? `${currency} ${formattedRate} / ${plot.sizeUnit || 'sqft'}`
+        : `${currency} ${formattedRate} (Total)`;
+    } else {
+      rateStr = String(plot.rate);
+    }
   }
 
   const statusStr = (plot.status || 'available').toUpperCase();

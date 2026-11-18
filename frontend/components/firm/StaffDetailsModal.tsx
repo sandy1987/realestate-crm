@@ -36,7 +36,7 @@ export function StaffDetailsModal({ open, onOpenChange, user }: StaffDetailsModa
           <StatusBadge status={!user.isSuspended && user.isActive ? 'active' : 'suspended'} />
         </div>
         <DialogDescription>
-          Firm account details, role specification, and granted capabilities.
+          Advisor account details, role specification, and granted capabilities.
         </DialogDescription>
       </DialogHeader>
 
@@ -53,7 +53,7 @@ export function StaffDetailsModal({ open, onOpenChange, user }: StaffDetailsModa
                   : 'bg-slate-100 text-slate-700 border-slate-200'
               }`}
             >
-              {user.role}
+              {isFirmAdmin ? 'Firm Admin' : 'Advisor'}
             </span>
           </div>
 

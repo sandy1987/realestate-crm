@@ -112,12 +112,12 @@ export function CreateStaffModal({ open, onOpenChange, onSuccess }: CreateStaffM
             email: 'A user account with this email address already exists',
           }));
         } else {
-          setGeneralError(err.message || 'Failed to create staff member.');
+          setGeneralError(err.message || 'Failed to create advisor.');
         }
       } else if (err instanceof Error) {
         setGeneralError(err.message);
       } else {
-        setGeneralError('An unexpected error occurred while creating staff member.');
+        setGeneralError('An unexpected error occurred while creating advisor.');
       }
     } finally {
       setIsSubmitting(false);
@@ -127,9 +127,9 @@ export function CreateStaffModal({ open, onOpenChange, onSuccess }: CreateStaffM
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogHeader>
-        <DialogTitle>Add Staff Member</DialogTitle>
+        <DialogTitle>Add Advisor</DialogTitle>
         <DialogDescription>
-          Create a new staff user account with granular CRM permissions within your firm.
+          Create a new advisor account with granular CRM permissions within your firm.
         </DialogDescription>
       </DialogHeader>
 
@@ -243,7 +243,7 @@ export function CreateStaffModal({ open, onOpenChange, onSuccess }: CreateStaffM
             Cancel
           </Button>
           <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting}>
-            Create Staff Member
+            Create Advisor
           </Button>
         </DialogFooter>
       </form>

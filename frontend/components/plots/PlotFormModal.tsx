@@ -47,6 +47,7 @@ interface FormState {
   plotDate: string;
   size: string;
   sizeUnit: PlotSizeUnit;
+  dimensions: string;
   rate: string;
   rateType: PlotRateType;
   currency: string;
@@ -76,6 +77,7 @@ function getInitialPlotFormState(plot?: Plot | null): FormState {
       plotDate: dateString,
       size: String(plot.size ?? ''),
       sizeUnit: plot.sizeUnit || 'sqyd',
+      dimensions: plot.dimensions || '',
       rate: String(plot.rate ?? ''),
       rateType: plot.rateType || 'total',
       currency: plot.currency || 'INR',
@@ -94,6 +96,7 @@ function getInitialPlotFormState(plot?: Plot | null): FormState {
     plotDate: '',
     size: '',
     sizeUnit: 'sqyd',
+    dimensions: '',
     rate: '',
     rateType: 'total',
     currency: 'INR',
@@ -244,9 +247,13 @@ export function PlotFormModal({ open, onOpenChange, plot, onSuccess }: PlotFormM
       errs.size = 'Plot size must be a positive number';
     }
 
-    const numRate = Number(formData.rate);
-    if (formData.rate === '' || isNaN(numRate) || numRate < 0) {
-      errs.rate = 'Rate cannot be negative';
+    const trimmedRate = formData.rate.trim();
+    if (!trimmedRate) {
+      errs.rate = 'Rate is required (e.g. 5000000, 45 Lakh, or Negotiable)';
+    }
+
+    if (formData.dimensions && formData.dimensions.trim().length > 100) {
+      errs.dimensions = 'Dimensions cannot exceed 100 characters';
     }
 
     // Video validation
@@ -294,7 +301,10 @@ export function PlotFormModal({ open, onOpenChange, plot, onSuccess }: PlotFormM
 
     try {
       const parsedSize = Number(formData.size);
-      const parsedRate = Number(formData.rate);
+      const rawRate = formData.rate.trim();
+      const isNumericRate = !isNaN(Number(rawRate)) && rawRate !== '';
+      const finalRate: number | string = isNumericRate ? Number(rawRate) : rawRate;
+      const dimensionsValue = formData.dimensions.trim() || null;
       const colonyIdValue = formData.colonyId.trim() || null;
       const plotDateValue = formData.plotDate.trim() ? new Date(formData.plotDate).toISOString() : null;
 
@@ -322,7 +332,8 @@ export function PlotFormModal({ open, onOpenChange, plot, onSuccess }: PlotFormM
           plotDate: plotDateValue,
           size: parsedSize,
           sizeUnit: formData.sizeUnit,
-          rate: parsedRate,
+          dimensions: dimensionsValue,
+          rate: finalRate,
           rateType: formData.rateType,
           currency: formData.currency.trim() || 'INR',
           status: formData.status,
@@ -341,7 +352,8 @@ export function PlotFormModal({ open, onOpenChange, plot, onSuccess }: PlotFormM
           plotDate: plotDateValue,
           size: parsedSize,
           sizeUnit: formData.sizeUnit,
-          rate: parsedRate,
+          dimensions: dimensionsValue,
+          rate: finalRate,
           rateType: formData.rateType,
           currency: formData.currency.trim() || 'INR',
           status: formData.status,
@@ -457,8 +469,8 @@ export function PlotFormModal({ open, onOpenChange, plot, onSuccess }: PlotFormM
           </div>
         </div>
 
-        {/* Row 2: Date, Size & Size Unit */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Row 2: Date, Size, Size Unit & Dimensions */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           <Input
             id="plot-date"
             type="date"
@@ -497,17 +509,25 @@ export function PlotFormModal({ open, onOpenChange, plot, onSuccess }: PlotFormM
               ))}
             </select>
           </div>
+
+          <Input
+            id="plot-dimensions"
+            type="text"
+            label="Dimensions"
+            placeholder="e.g. 30*50"
+            value={formData.dimensions}
+            onChange={(e) => setFormData((prev) => ({ ...prev, dimensions: e.target.value }))}
+            error={errors.dimensions}
+          />
         </div>
 
         {/* Row 3: Rate, Rate Type & Status */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Input
             id="plot-rate"
-            type="number"
-            step="any"
-            min="0"
+            type="text"
             label="Rate (Price) *"
-            placeholder="e.g. 5000000"
+            placeholder="e.g. 5000000, 45 Lakh, Negotiable"
             value={formData.rate}
             onChange={(e) => setFormData((prev) => ({ ...prev, rate: e.target.value }))}
             error={errors.rate}

@@ -190,7 +190,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 {item.href === '/firm'
                   ? isSuperAdmin
                     ? 'Platform Firms'
-                    : 'Firm & Staff'
+                    : 'Firm & Advisors'
                   : item.href === '/audit'
                   ? isSuperAdmin
                     ? 'Platform Audit'

@@ -281,7 +281,9 @@ export default function DashboardPage() {
 
                       const calculatedTotal =
                         plot.totalPrice ??
-                        (plot.rateType === 'per_unit' ? plot.rate * plot.size : plot.rate);
+                        (plot.rateType === 'per_unit' && typeof plot.rate === 'number'
+                          ? plot.rate * plot.size
+                          : plot.rate);
                       const displayPrice = formatCurrency(calculatedTotal, plot.currency);
 
                       return (
@@ -292,7 +294,14 @@ export default function DashboardPage() {
                           <TableCell className="text-slate-600">
                             {colony?.name || '—'}
                           </TableCell>
-                          <TableCell>{formatArea(plot.size, plot.sizeUnit)}</TableCell>
+                          <TableCell>
+                            <div>{formatArea(plot.size, plot.sizeUnit)}</div>
+                            {plot.dimensions && (
+                              <div className="text-[10px] text-slate-500 font-mono">
+                                {plot.dimensions}
+                              </div>
+                            )}
+                          </TableCell>
                           <TableCell className="font-medium text-slate-900">
                             {displayPrice}
                           </TableCell>
@@ -348,7 +357,7 @@ export default function DashboardPage() {
                   className="w-full justify-start text-xs"
                   leftIcon={<Building className="h-4 w-4 text-slate-500" />}
                 >
-                  Firm Profile & Staff
+                  Firm Profile & Advisors
                 </Button>
               </Link>
               <Link href="/audit" className="block">

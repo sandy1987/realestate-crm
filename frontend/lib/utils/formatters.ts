@@ -4,8 +4,17 @@
 
 /**
  * Format currency to Indian Rupee (INR) or localized standard.
+ * Gracefully preserves descriptive text rates like "45 Lakh" or "Negotiable".
  */
-export function formatCurrency(amount: number, currency: string = 'INR'): string {
+export function formatCurrency(amount: number | string | null | undefined, currency: string = 'INR'): string {
+  if (amount === undefined || amount === null || amount === '') return '—';
+  if (typeof amount === 'string') {
+    const num = Number(amount);
+    if (isNaN(num)) {
+      return amount;
+    }
+    amount = num;
+  }
   try {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -39,13 +48,18 @@ export function formatArea(size: number, unit: string = 'sqyd'): string {
 
 /**
  * Format plot rate distinguishing total rate vs rate-per-unit.
+ * Preserves custom price strings like "Negotiable", "Call for Price", or "45 Lakh".
  */
 export function formatPlotRate(
-  rate: number,
+  rate: number | string | null | undefined,
   rateType: 'total' | 'per_unit' = 'total',
   sizeUnit: string = 'sqyd',
   currency: string = 'INR'
 ): string {
+  if (rate === undefined || rate === null || rate === '') return '—';
+  if (typeof rate === 'string' && isNaN(Number(rate))) {
+    return rate;
+  }
   const formattedAmount = formatCurrency(rate, currency);
   if (rateType === 'per_unit') {
     const unitLabels: Record<string, string> = {

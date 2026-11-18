@@ -167,18 +167,18 @@ export function TenantFirmStaffView({ readOnly = false }: TenantFirmStaffViewPro
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold tracking-tight text-slate-900">Firm Staff & User Directory</h2>
+              <h2 className="text-lg font-bold tracking-tight text-slate-900">Firm Advisors & User Directory</h2>
               <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
                 Tenant Administration
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Administer team member accounts, assign granular role permissions, and control access statuses.
+              Administer advisor accounts, assign granular role permissions, and control access statuses.
             </p>
           </div>
           {!readOnly && (
             <Button onClick={() => setCreateModalOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
-              Add Staff Member
+              Add Advisor
             </Button>
           )}
         </div>
@@ -188,9 +188,9 @@ export function TenantFirmStaffView({ readOnly = false }: TenantFirmStaffViewPro
             <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-slate-600 mb-2.5">
               <ShieldAlert className="h-5 w-5" />
             </div>
-            <h3 className="text-sm font-semibold text-slate-800">Staff Management Restricted</h3>
+            <h3 className="text-sm font-semibold text-slate-800">Advisor Management Restricted</h3>
             <p className="text-xs text-slate-500 mt-1">
-              Only firm administrators can create, update, or suspend staff accounts within your organization.
+              Only firm administrators can create, update, or suspend advisor accounts within your organization.
             </p>
           </div>
         ) : (
@@ -199,7 +199,7 @@ export function TenantFirmStaffView({ readOnly = false }: TenantFirmStaffViewPro
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
               <div className="relative flex-1 max-w-md">
                 <Input
-                  placeholder="Search staff by email, first name, or last name..."
+                  placeholder="Search advisors by email, first name, or last name..."
                   value={search}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   leftIcon={<Search className="h-4 w-4" />}
@@ -221,7 +221,7 @@ export function TenantFirmStaffView({ readOnly = false }: TenantFirmStaffViewPro
                 >
                   <option value="all">All Roles</option>
                   <option value="FIRM_ADMIN">Firm Admin</option>
-                  <option value="FIRM_STAFF">Firm Staff</option>
+                  <option value="FIRM_STAFF">Advisor</option>
                 </select>
 
                 {/* Status Filter */}
@@ -268,13 +268,13 @@ export function TenantFirmStaffView({ readOnly = false }: TenantFirmStaffViewPro
             ) : staffList.length === 0 ? (
               <EmptyState
                 icon={<Users className="h-6 w-6" />}
-                title={search || roleFilter !== 'all' || statusFilter !== 'all' ? 'No matching staff members found' : 'No staff accounts created yet'}
+                title={search || roleFilter !== 'all' || statusFilter !== 'all' ? 'No matching advisors found' : 'No advisor accounts created yet'}
                 description={
                   search || roleFilter !== 'all' || statusFilter !== 'all'
                     ? 'Try modifying your search query or filter options.'
-                    : 'Add staff members to collaborate on colony developments and plot listings.'
+                    : 'Add advisors to collaborate on colony developments and plot listings.'
                 }
-                actionLabel={!search && roleFilter === 'all' && statusFilter === 'all' ? 'Add First Staff Member' : undefined}
+                actionLabel={!search && roleFilter === 'all' && statusFilter === 'all' ? 'Add First Advisor' : undefined}
                 onAction={!search && roleFilter === 'all' && statusFilter === 'all' ? () => setCreateModalOpen(true) : undefined}
               />
             ) : (
@@ -317,7 +317,7 @@ export function TenantFirmStaffView({ readOnly = false }: TenantFirmStaffViewPro
                                   : 'bg-slate-100 text-slate-700 border-slate-200'
                               }`}
                             >
-                              {staff.role}
+                              {staff.role === 'FIRM_ADMIN' ? 'Firm Admin' : 'Advisor'}
                             </span>
                           </TableCell>
                           <TableCell>
@@ -356,7 +356,7 @@ export function TenantFirmStaffView({ readOnly = false }: TenantFirmStaffViewPro
                                 onClick={() => handleEditClick(staff)}
                                 aria-label={`Edit ${staff.email}`}
                                 className="h-8 w-8 p-0"
-                                title="Edit staff profile & permissions"
+                                title="Edit advisor profile & permissions"
                               >
                                 <Edit2 className="h-3.5 w-3.5 text-slate-600" />
                               </Button>
@@ -368,7 +368,7 @@ export function TenantFirmStaffView({ readOnly = false }: TenantFirmStaffViewPro
                                   onClick={() => handleStatusClick(staff, 'activate')}
                                   aria-label={`Reactivate ${staff.email}`}
                                   className="h-8 w-8 p-0 hover:text-emerald-600"
-                                  title="Reactivate staff account"
+                                  title="Reactivate advisor account"
                                 >
                                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
                                 </Button>
@@ -379,7 +379,7 @@ export function TenantFirmStaffView({ readOnly = false }: TenantFirmStaffViewPro
                                   onClick={() => handleStatusClick(staff, 'suspend')}
                                   aria-label={`Suspend ${staff.email}`}
                                   className="h-8 w-8 p-0 hover:text-amber-600"
-                                  title={isSelf ? 'Cannot suspend own account' : 'Suspend staff account'}
+                                  title={isSelf ? 'Cannot suspend own account' : 'Suspend advisor account'}
                                   disabled={isSelf}
                                 >
                                   <ShieldBan className="h-3.5 w-3.5 text-amber-500" />
@@ -398,7 +398,7 @@ export function TenantFirmStaffView({ readOnly = false }: TenantFirmStaffViewPro
                   <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-600">
                     <div>
                       Showing page <strong className="text-slate-900">{meta.page}</strong> of{' '}
-                      <strong className="text-slate-900">{meta.totalPages}</strong> ({meta.total} total staff)
+                      <strong className="text-slate-900">{meta.totalPages}</strong> ({meta.total} total advisors)
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
