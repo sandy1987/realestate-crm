@@ -117,6 +117,18 @@ export async function createPlot({ firmId, data, userId, firmSettings }) {
     currency: data.currency || firmSettings?.defaultCurrency || 'INR',
     description: data.description ?? null,
     status: data.status || 'available',
+    category: data.category || 'plot',
+    rentalType: data.rentalType || null,
+    furnishing: data.furnishing || null,
+    securityDeposit: data.securityDeposit !== undefined ? data.securityDeposit : null,
+    availableFrom: data.availableFrom ? new Date(data.availableFrom) : null,
+    preferredTenant: data.preferredTenant || null,
+    listingType: data.listingType || 'sale',
+    waterSource: data.waterSource || null,
+    roadAccess: data.roadAccess || null,
+    electricity: data.electricity || null,
+    fencing: data.fencing || null,
+    soilType: data.soilType || null,
     images,
     videoUrl: videoData?.url || null,
     videoProvider: videoData?.provider || null,
@@ -138,13 +150,16 @@ export async function createPlot({ firmId, data, userId, firmSettings }) {
     metadata: { plotRef: plot.plotRef, colonyId: plot.colonyId ? plot.colonyId.toString() : null },
   });
 
+  await plot.populate('createdBy', 'firstName lastName email role');
   return plot.toSafeObject();
 }
 
 /**
  * Lists plots within the authenticated firm with whitelisted sorting, pagination, and multi-field filters.
+ * Staff members (FIRM_STAFF) are strictly scoped to only view plots they registered (createdBy === user.id).
+ * Firm Administrators can see all plots and optionally filter by advisor.
  */
-export async function listPlots({ firmId, query = {} }) {
+export async function listPlots({ firmId, query = {}, user = null }) {
   const allowedSortFields = [
     'createdAt',
     'plotDate',
@@ -158,6 +173,36 @@ export async function listPlots({ firmId, query = {} }) {
   const { page, limit, skip, sortBy, sortOrder } = parsePagination(query, allowedSortFields);
 
   const filter = { firmId };
+
+  // Role-based scoping: FIRM_STAFF only sees their own plots
+  if (user && user.role === 'FIRM_STAFF') {
+    filter.createdBy = user.id;
+  } else if (query.advisorId || query.createdBy) {
+    // Admin filtering by a specific advisor/creator
+    const targetAdvisor = (query.advisorId || query.createdBy).trim();
+    if (isValidObjectId(targetAdvisor)) {
+      filter.createdBy = targetAdvisor;
+    }
+  }
+
+  // Category filter: 'plot' | 'rental' | 'agricultural' | 'all'
+  // Note: For existing plots in the database that were created before the category field was added,
+  // MongoDB { category: { $in: ['plot', null] } } ensures 100% backward compatibility.
+  if (query.category && query.category !== 'all') {
+    if (query.category === 'plot') {
+      filter.category = { $in: ['plot', null] };
+    } else {
+      filter.category = query.category;
+    }
+  }
+
+  // Specialized rentalType & listingType filters
+  if (query.rentalType) {
+    filter.rentalType = query.rentalType;
+  }
+  if (query.listingType) {
+    filter.listingType = query.listingType;
+  }
 
   // Text search
   if (query.search) {
@@ -207,14 +252,60 @@ export async function listPlots({ firmId, query = {} }) {
     }
   }
 
-  // Rate numeric range
+  // Rate numeric range (evaluates Total Property Value: calculates rate * size for per_unit, and rate for total)
   if (query.rateMin !== undefined || query.rateMax !== undefined) {
-    filter.rate = {};
-    if (query.rateMin !== undefined && !isNaN(Number(query.rateMin))) {
-      filter.rate.$gte = Number(query.rateMin);
+    const min = query.rateMin !== undefined && !isNaN(Number(query.rateMin)) ? Number(query.rateMin) : null;
+    const max = query.rateMax !== undefined && !isNaN(Number(query.rateMax)) ? Number(query.rateMax) : null;
+
+    // Expression to safely extract a numeric rate value from numbers or string rates like "500000(fixed)"
+    const numericRateExpr = {
+      $convert: {
+        input: {
+          $let: {
+            vars: {
+              match: {
+                $regexFind: {
+                  input: { $toString: { $ifNull: ['$rate', 0] } },
+                  regex: '[0-9]+(?:\\.[0-9]+)?',
+                },
+              },
+            },
+            in: { $ifNull: ['$$match.match', '0'] },
+          },
+        },
+        to: 'double',
+        onError: 0,
+        onNull: 0,
+      },
+    };
+
+    // Calculate effective total price: (rate * size) if per_unit, else rate
+    const effectiveTotalExpr = {
+      $cond: {
+        if: { $eq: ['$rateType', 'per_unit'] },
+        then: {
+          $multiply: [
+            numericRateExpr,
+            { $convert: { input: { $ifNull: ['$size', 1] }, to: 'double', onError: 1, onNull: 1 } },
+          ],
+        },
+        else: numericRateExpr,
+      },
+    };
+
+    const exprConditions = [];
+    if (min !== null) {
+      exprConditions.push({ $gte: [effectiveTotalExpr, min] });
     }
-    if (query.rateMax !== undefined && !isNaN(Number(query.rateMax))) {
-      filter.rate.$lte = Number(query.rateMax);
+    if (max !== null) {
+      exprConditions.push({ $lte: [effectiveTotalExpr, max] });
+    }
+
+    if (exprConditions.length > 0) {
+      if (!filter.$and) {
+        filter.$and = [];
+      }
+      filter.$and.push({ $expr: { $and: exprConditions } });
     }
   }
 
@@ -238,6 +329,7 @@ export async function listPlots({ firmId, query = {} }) {
   const [total, items] = await Promise.all([
     Plot.countDocuments(filter),
     Plot.find(filter)
+      .populate('createdBy', 'firstName lastName email role')
       .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
       .skip(skip)
       .limit(limit),
@@ -252,7 +344,7 @@ export async function listPlots({ firmId, query = {} }) {
 /**
  * Retrieves a single plot by database resource ID, strictly scoped to the authenticated firm.
  */
-export async function getPlotById({ plotId, firmId }) {
+export async function getPlotById({ plotId, firmId, user = null }) {
   if (!isValidObjectId(plotId)) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -260,7 +352,12 @@ export async function getPlotById({ plotId, firmId }) {
     throw error;
   }
 
-  const plot = await Plot.findOne({ _id: plotId, firmId });
+  const query = { _id: plotId, firmId };
+  if (user && user.role === 'FIRM_STAFF') {
+    query.createdBy = user.id;
+  }
+
+  const plot = await Plot.findOne(query).populate('createdBy', 'firstName lastName email role');
   if (!plot) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -268,13 +365,14 @@ export async function getPlotById({ plotId, firmId }) {
     throw error;
   }
 
+  await plot.populate('createdBy', 'firstName lastName email role');
   return plot.toSafeObject();
 }
 
 /**
  * Updates an existing plot within the authenticated firm.
  */
-export async function updatePlot({ plotId, firmId, data, userId, firmSettings }) {
+export async function updatePlot({ plotId, firmId, data, userId, firmSettings, user = null }) {
   if (!isValidObjectId(plotId)) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -282,7 +380,12 @@ export async function updatePlot({ plotId, firmId, data, userId, firmSettings })
     throw error;
   }
 
-  const plot = await Plot.findOne({ _id: plotId, firmId });
+  const query = { _id: plotId, firmId };
+  if (user && user.role === 'FIRM_STAFF') {
+    query.createdBy = user.id;
+  }
+
+  const plot = await Plot.findOne(query);
   if (!plot) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -394,6 +497,18 @@ export async function updatePlot({ plotId, firmId, data, userId, firmSettings })
   if (data.currency !== undefined) plot.currency = data.currency;
   if (data.description !== undefined) plot.description = data.description;
   if (data.status !== undefined) plot.status = data.status;
+  if (data.category !== undefined) plot.category = data.category;
+  if (data.rentalType !== undefined) plot.rentalType = data.rentalType;
+  if (data.furnishing !== undefined) plot.furnishing = data.furnishing;
+  if (data.securityDeposit !== undefined) plot.securityDeposit = data.securityDeposit;
+  if (data.availableFrom !== undefined) plot.availableFrom = data.availableFrom ? new Date(data.availableFrom) : null;
+  if (data.preferredTenant !== undefined) plot.preferredTenant = data.preferredTenant;
+  if (data.listingType !== undefined) plot.listingType = data.listingType;
+  if (data.waterSource !== undefined) plot.waterSource = data.waterSource;
+  if (data.roadAccess !== undefined) plot.roadAccess = data.roadAccess;
+  if (data.electricity !== undefined) plot.electricity = data.electricity;
+  if (data.fencing !== undefined) plot.fencing = data.fencing;
+  if (data.soilType !== undefined) plot.soilType = data.soilType;
   if (data.isActive !== undefined) plot.isActive = data.isActive;
 
   plot.updatedBy = userId;
@@ -409,13 +524,14 @@ export async function updatePlot({ plotId, firmId, data, userId, firmSettings })
     metadata: { plotRef: plot.plotRef },
   });
 
+  await plot.populate('createdBy', 'firstName lastName email role');
   return plot.toSafeObject();
 }
 
 /**
  * Deactivates a plot (soft deletion).
  */
-export async function deactivatePlot({ plotId, firmId, userId }) {
+export async function deactivatePlot({ plotId, firmId, userId, user = null }) {
   if (!isValidObjectId(plotId)) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -423,7 +539,12 @@ export async function deactivatePlot({ plotId, firmId, userId }) {
     throw error;
   }
 
-  const plot = await Plot.findOne({ _id: plotId, firmId });
+  const query = { _id: plotId, firmId };
+  if (user && user.role === 'FIRM_STAFF') {
+    query.createdBy = user.id;
+  }
+
+  const plot = await Plot.findOne(query);
   if (!plot) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -445,6 +566,7 @@ export async function deactivatePlot({ plotId, firmId, userId }) {
     metadata: { plotRef: plot.plotRef },
   });
 
+  await plot.populate('createdBy', 'firstName lastName email role');
   return plot.toSafeObject();
 }
 
@@ -457,7 +579,7 @@ export async function deactivatePlot({ plotId, firmId, userId }) {
  * @param {string|mongoose.Types.ObjectId} params.firmId - Authenticated firm tenant ID
  * @param {string|mongoose.Types.ObjectId} [params.userId] - Optional authenticated user ID for audit logging
  */
-export async function getPlotWhatsAppShare({ plotId, firmId, userId }) {
+export async function getPlotWhatsAppShare({ plotId, firmId, userId, user = null }) {
   if (!isValidObjectId(plotId)) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -465,7 +587,12 @@ export async function getPlotWhatsAppShare({ plotId, firmId, userId }) {
     throw error;
   }
 
-  const plot = await Plot.findOne({ _id: plotId, firmId });
+  const query = { _id: plotId, firmId };
+  if (user && user.role === 'FIRM_STAFF') {
+    query.createdBy = user.id;
+  }
+
+  const plot = await Plot.findOne(query);
   if (!plot) {
     const error = new Error('Plot not found');
     error.statusCode = 404;

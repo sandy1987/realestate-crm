@@ -160,6 +160,86 @@ const plotSchema = new mongoose.Schema(
       },
     },
 
+    category: {
+      type: String,
+      enum: ['plot', 'rental', 'agricultural'],
+      default: 'plot',
+      index: true,
+    },
+
+    // --- Specialized Rental Properties fields ---
+    rentalType: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    furnishing: {
+      type: String,
+      enum: ['unfurnished', 'semi_furnished', 'fully_furnished', null],
+      default: null,
+    },
+
+    securityDeposit: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+
+    availableFrom: {
+      type: Date,
+      default: null,
+    },
+
+    preferredTenant: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Preferred tenant cannot exceed 200 characters'],
+      default: null,
+    },
+
+    // --- Specialized Agricultural Land fields ---
+    listingType: {
+      type: String,
+      enum: ['sale', 'rent', 'lease'],
+      default: 'sale',
+      index: true,
+    },
+
+    waterSource: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Water source cannot exceed 200 characters'],
+      default: null,
+    },
+
+    roadAccess: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Road access cannot exceed 200 characters'],
+      default: null,
+    },
+
+    electricity: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Electricity details cannot exceed 200 characters'],
+      default: null,
+    },
+
+    fencing: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Fencing details cannot exceed 200 characters'],
+      default: null,
+    },
+
+    soilType: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Soil type cannot exceed 200 characters'],
+      default: null,
+    },
+
     isActive: {
       type: Boolean,
       default: true,
@@ -225,6 +305,9 @@ plotSchema.index({ firmId: 1, plotRef: 1 }, { unique: true });
 plotSchema.index({ firmId: 1, colonyId: 1 });
 plotSchema.index({ firmId: 1, status: 1 });
 plotSchema.index({ firmId: 1, isActive: 1, createdAt: -1 });
+plotSchema.index({ firmId: 1, createdBy: 1 });
+plotSchema.index({ firmId: 1, category: 1, createdAt: -1 });
+plotSchema.index({ firmId: 1, category: 1, createdBy: 1 });
 
 /**
  * Returns safe serializable plot details with public listing fields only.
@@ -235,6 +318,27 @@ plotSchema.methods.toSafeObject = function () {
   const effectiveUrl = this.videoUrl || this.video?.url || null;
   const effectiveProvider = this.videoProvider || this.video?.provider || null;
 
+  let creator = null;
+  if (this.createdBy && typeof this.createdBy === 'object' && this.createdBy.email) {
+    const name = [this.createdBy.firstName, this.createdBy.lastName].filter(Boolean).join(' ') || this.createdBy.email;
+    creator = {
+      id: this.createdBy._id ? this.createdBy._id.toString() : String(this.createdBy.id || ''),
+      name,
+      email: this.createdBy.email,
+      role: this.createdBy.role || 'FIRM_STAFF',
+    };
+  }
+
+  let createdById = null;
+  if (this.createdBy) {
+    createdById = this.createdBy._id ? this.createdBy._id.toString() : this.createdBy.toString();
+  }
+
+  let updatedById = null;
+  if (this.updatedBy) {
+    updatedById = this.updatedBy._id ? this.updatedBy._id.toString() : this.updatedBy.toString();
+  }
+
   return {
     id: this._id.toString(),
     plotId: this.plotRef,
@@ -242,11 +346,28 @@ plotSchema.methods.toSafeObject = function () {
     firmId: this.firmId.toString(),
     colonyId: this.colonyId ? this.colonyId.toString() : null,
     plotDate: this.plotDate || null,
+    category: this.category || 'plot',
+    rentalType: this.rentalType || null,
+    furnishing: this.furnishing || null,
+    securityDeposit: this.securityDeposit ?? null,
+    availableFrom: this.availableFrom || null,
+    preferredTenant: this.preferredTenant || null,
+    listingType: this.listingType || 'sale',
+    waterSource: this.waterSource || null,
+    roadAccess: this.roadAccess || null,
+    electricity: this.electricity || null,
+    fencing: this.fencing || null,
+    soilType: this.soilType || null,
     size: this.size,
     sizeUnit: this.sizeUnit,
     dimensions: this.dimensions || null,
     rate: this.rate,
     rateType: this.rateType,
+    totalPrice: this.totalPrice ?? (
+      this.rateType === 'per_unit' && !isNaN(Number(this.rate)) && !isNaN(Number(this.size))
+        ? Number(this.rate) * Number(this.size)
+        : (!isNaN(Number(this.rate)) ? Number(this.rate) : null)
+    ),
     currency: this.currency || 'INR',
     description: this.description || null,
     status: this.status,
@@ -261,8 +382,9 @@ plotSchema.methods.toSafeObject = function () {
         }
       : null,
     isActive: this.isActive,
-    createdBy: this.createdBy ? this.createdBy.toString() : null,
-    updatedBy: this.updatedBy ? this.updatedBy.toString() : null,
+    createdBy: createdById,
+    creator,
+    updatedBy: updatedById,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

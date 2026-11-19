@@ -17,7 +17,7 @@ import { AUDIT_EVENTS } from '../constants/auditEvents.js';
 /**
  * Retrieves private owner and source details for a plot.
  */
-export async function getPlotPrivate({ plotId, firmId }) {
+export async function getPlotPrivate({ plotId, firmId, user = null }) {
   if (!isValidObjectId(plotId)) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -25,8 +25,13 @@ export async function getPlotPrivate({ plotId, firmId }) {
     throw error;
   }
 
-  // 1. Verify parent plot exists and belongs to the authenticated firm
-  const plot = await Plot.findOne({ _id: plotId, firmId });
+  // 1. Verify parent plot exists and belongs to the authenticated firm (scoped by staff ownership)
+  const plotQuery = { _id: plotId, firmId };
+  if (user && user.role === 'FIRM_STAFF') {
+    plotQuery.createdBy = user.id;
+  }
+
+  const plot = await Plot.findOne(plotQuery);
   if (!plot) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -58,7 +63,7 @@ export async function getPlotPrivate({ plotId, firmId }) {
 /**
  * Creates or completely replaces private owner/source details for a plot (PUT /upsert).
  */
-export async function putPlotPrivate({ plotId, firmId, data, userId }) {
+export async function putPlotPrivate({ plotId, firmId, data, userId, user = null }) {
   if (!isValidObjectId(plotId)) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -66,8 +71,13 @@ export async function putPlotPrivate({ plotId, firmId, data, userId }) {
     throw error;
   }
 
-  // 1. Verify parent plot exists and belongs to this firm
-  const plot = await Plot.findOne({ _id: plotId, firmId });
+  // 1. Verify parent plot exists and belongs to this firm (scoped by staff ownership)
+  const plotQuery = { _id: plotId, firmId };
+  if (user && user.role === 'FIRM_STAFF') {
+    plotQuery.createdBy = user.id;
+  }
+
+  const plot = await Plot.findOne(plotQuery);
   if (!plot) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -130,7 +140,7 @@ export async function putPlotPrivate({ plotId, firmId, data, userId }) {
 /**
  * Partially updates private owner/source details for a plot (PATCH).
  */
-export async function patchPlotPrivate({ plotId, firmId, data, userId }) {
+export async function patchPlotPrivate({ plotId, firmId, data, userId, user = null }) {
   if (!isValidObjectId(plotId)) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -138,8 +148,13 @@ export async function patchPlotPrivate({ plotId, firmId, data, userId }) {
     throw error;
   }
 
-  // 1. Verify parent plot exists and belongs to this firm
-  const plot = await Plot.findOne({ _id: plotId, firmId });
+  // 1. Verify parent plot exists and belongs to this firm (scoped by staff ownership)
+  const plotQuery = { _id: plotId, firmId };
+  if (user && user.role === 'FIRM_STAFF') {
+    plotQuery.createdBy = user.id;
+  }
+
+  const plot = await Plot.findOne(plotQuery);
   if (!plot) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -202,7 +217,7 @@ export async function patchPlotPrivate({ plotId, firmId, data, userId }) {
 /**
  * Removes private details for a plot (DELETE).
  */
-export async function deletePlotPrivate({ plotId, firmId }) {
+export async function deletePlotPrivate({ plotId, firmId, user = null }) {
   if (!isValidObjectId(plotId)) {
     const error = new Error('Plot not found');
     error.statusCode = 404;
@@ -210,8 +225,13 @@ export async function deletePlotPrivate({ plotId, firmId }) {
     throw error;
   }
 
-  // Verify plot belongs to this firm
-  const plot = await Plot.findOne({ _id: plotId, firmId });
+  // Verify plot belongs to this firm (scoped by staff ownership)
+  const plotQuery = { _id: plotId, firmId };
+  if (user && user.role === 'FIRM_STAFF') {
+    plotQuery.createdBy = user.id;
+  }
+
+  const plot = await Plot.findOne(plotQuery);
   if (!plot) {
     const error = new Error('Plot not found');
     error.statusCode = 404;

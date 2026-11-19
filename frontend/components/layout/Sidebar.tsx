@@ -17,6 +17,8 @@ import {
   Compass,
   LogOut,
   UserCheck,
+  KeyRound,
+  Sprout,
 } from 'lucide-react';
 
 interface NavItem {
@@ -40,6 +42,20 @@ const allNavItems: NavItem[] = [
     name: 'Plots',
     href: '/plots',
     icon: Landmark,
+    roleRequirement: 'TENANT_ONLY',
+    permissionRequirement: 'plots:read',
+  },
+  {
+    name: 'Rental Properties',
+    href: '/rentals',
+    icon: KeyRound,
+    roleRequirement: 'TENANT_ONLY',
+    permissionRequirement: 'plots:read',
+  },
+  {
+    name: 'Agricultural Land',
+    href: '/agricultural',
+    icon: Sprout,
     roleRequirement: 'TENANT_ONLY',
     permissionRequirement: 'plots:read',
   },
@@ -113,9 +129,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Brand Header */}
       <div className="flex h-16 items-center justify-between px-6 border-b border-slate-100">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white shadow-xs">
-            <Compass className="h-5 w-5" />
-          </div>
+          <img
+            src="/app-logo.jpg"
+            alt="Real Estate Logo"
+            className="h-9 w-9 rounded-full object-cover shadow-2xs border border-slate-200 shrink-0"
+          />
           <div>
             <span className="text-sm font-bold tracking-tight text-slate-900 block leading-tight">
               AGENT-Broker
@@ -226,6 +244,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <LogOut className="h-3.5 w-3.5" />
           <span>Sign Out</span>
         </button>
+
+        {/* Developer Credit Footer */}
+        <div className="mt-4 pt-3 border-t border-slate-200 flex flex-col items-center justify-center text-center">
+          <img
+            src="/yuvasoft-logo.png"
+            alt="Yuvasoft Software Solutions"
+            className="h-8 w-auto object-contain mb-1.5 drop-shadow-xs"
+          />
+          <span className="text-[10px] font-extrabold tracking-wider text-slate-900 uppercase leading-tight">
+            DEVELOPED BY YUVASOFT SOFTWARE SOLUTIONS PVT LTD
+          </span>
+        </div>
       </div>
     </div>
   );

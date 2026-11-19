@@ -26,6 +26,10 @@ export const PLOT_STATUSES = ['available', 'sold', 'reserved', 'on_hold'] as con
 
 export type PlotStatus = (typeof PLOT_STATUSES)[number];
 
+export type PropertyCategory = 'plot' | 'rental' | 'agricultural';
+export type RentalFurnishing = 'unfurnished' | 'semi_furnished' | 'fully_furnished';
+export type AgriListingType = 'sale' | 'rent' | 'lease';
+
 export interface PlotImage {
   url: string;
   publicId?: string | null;
@@ -37,6 +41,13 @@ export interface PlotVideo {
   url: string | null;
   provider: 'youtube' | 'vimeo' | 'cloudinary' | null;
   publicId?: string | null;
+}
+
+export interface PlotCreator {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
 }
 
 export interface Plot {
@@ -56,12 +67,25 @@ export interface Plot {
   currency: string;
   description: string | null;
   status: PlotStatus;
+  category?: PropertyCategory;
+  rentalType?: string | null;
+  furnishing?: RentalFurnishing | null;
+  securityDeposit?: number | string | null;
+  availableFrom?: string | null;
+  preferredTenant?: string | null;
+  listingType?: AgriListingType;
+  waterSource?: string | null;
+  roadAccess?: string | null;
+  electricity?: string | null;
+  fencing?: string | null;
+  soilType?: string | null;
   images?: PlotImage[];
   videoUrl: string | null;
   videoProvider: 'youtube' | 'vimeo' | 'cloudinary' | null;
   video: PlotVideo | null;
   isActive: boolean;
   createdBy: string | null;
+  creator?: PlotCreator | null;
   updatedBy: string | null;
   createdAt: string;
   updatedAt: string;
@@ -80,6 +104,18 @@ export interface CreatePlotInput {
   currency?: string;
   description?: string | null;
   status?: PlotStatus;
+  category?: PropertyCategory;
+  rentalType?: string | null;
+  furnishing?: RentalFurnishing | null;
+  securityDeposit?: number | string | null;
+  availableFrom?: string | null;
+  preferredTenant?: string | null;
+  listingType?: AgriListingType;
+  waterSource?: string | null;
+  roadAccess?: string | null;
+  electricity?: string | null;
+  fencing?: string | null;
+  soilType?: string | null;
   images?: PlotImage[];
   videoUrl?: string | null;
   videoProvider?: 'youtube' | 'vimeo' | 'cloudinary' | null;
@@ -100,6 +136,18 @@ export interface UpdatePlotInput {
   currency?: string;
   description?: string | null;
   status?: PlotStatus;
+  category?: PropertyCategory;
+  rentalType?: string | null;
+  furnishing?: RentalFurnishing | null;
+  securityDeposit?: number | string | null;
+  availableFrom?: string | null;
+  preferredTenant?: string | null;
+  listingType?: AgriListingType;
+  waterSource?: string | null;
+  roadAccess?: string | null;
+  electricity?: string | null;
+  fencing?: string | null;
+  soilType?: string | null;
   images?: PlotImage[];
   videoUrl?: string | null;
   videoProvider?: 'youtube' | 'vimeo' | 'cloudinary' | null;
@@ -125,4 +173,9 @@ export interface PlotQueryParams {
   rateType?: PlotRateType;
   plotDateFrom?: string;
   plotDateTo?: string;
+  category?: PropertyCategory | 'all';
+  rentalType?: string;
+  listingType?: AgriListingType;
+  advisorId?: string;
+  createdBy?: string;
 }

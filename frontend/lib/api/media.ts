@@ -39,6 +39,17 @@ export const mediaApi = {
   },
 
   /**
+   * Alias helpers for single image/video uploads.
+   */
+  async uploadImage(file: File): Promise<UploadedMediaItem> {
+    return this.uploadFile(file);
+  },
+
+  async uploadVideo(file: File): Promise<UploadedMediaItem> {
+    return this.uploadFile(file);
+  },
+
+  /**
    * Delete uploaded asset from Cloudinary.
    */
   async deleteMedia(publicId: string, resourceType: 'image' | 'video' = 'image'): Promise<void> {

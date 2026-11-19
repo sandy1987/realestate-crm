@@ -8,6 +8,8 @@ import { ChevronRight, Home } from 'lucide-react';
 const routeLabels: Record<string, string> = {
   colonies: 'Colonies',
   plots: 'Plots',
+  rentals: 'Rental Properties',
+  agricultural: 'Agricultural Land',
   firm: 'Firm Management',
   audit: 'Audit Logs',
   settings: 'Settings',

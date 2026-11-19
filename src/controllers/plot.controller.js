@@ -23,6 +23,7 @@ export const listPlots = asyncHandler(async (req, res) => {
   const result = await plotService.listPlots({
     firmId: req.tenant.firmId,
     query: req.query,
+    user: req.user,
   });
 
   return sendSuccess(res, result.items, 200, result.meta);
@@ -32,6 +33,7 @@ export const getPlot = asyncHandler(async (req, res) => {
   const result = await plotService.getPlotById({
     plotId: req.params.plotId,
     firmId: req.tenant.firmId,
+    user: req.user,
   });
 
   return sendSuccess(res, result, 200);
@@ -44,6 +46,7 @@ export const updatePlot = asyncHandler(async (req, res) => {
     data: req.body,
     userId: req.user.id,
     firmSettings: req.firm?.settings,
+    user: req.user,
   });
 
   return sendSuccess(res, result, 200);
@@ -54,6 +57,7 @@ export const deactivatePlot = asyncHandler(async (req, res) => {
     plotId: req.params.plotId,
     firmId: req.tenant.firmId,
     userId: req.user.id,
+    user: req.user,
   });
 
   return sendSuccess(res, result, 200);
@@ -64,6 +68,7 @@ export const getPlotWhatsAppShare = asyncHandler(async (req, res) => {
     plotId: req.params.plotId,
     firmId: req.tenant.firmId,
     userId: req.user?.id,
+    user: req.user,
   });
 
   return sendSuccess(res, result, 200);

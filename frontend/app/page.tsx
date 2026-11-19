@@ -29,6 +29,8 @@ import {
   Building,
   ExternalLink,
   Activity,
+  KeyRound,
+  Sprout,
 } from 'lucide-react';
 
 function formatEventTitle(eventType: string): string {
@@ -82,7 +84,7 @@ export default function DashboardPage() {
     try {
       // 1. Fetch plots & colonies in parallel
       const [plotsRes, coloniesRes] = await Promise.allSettled([
-        plotsApi.listPlots({ limit: 100, sortBy: 'updatedAt', sortOrder: 'desc' }),
+        plotsApi.listPlots({ limit: 100, sortBy: 'updatedAt', sortOrder: 'desc', category: 'plot' }),
         coloniesApi.listColonies({ limit: 100 }),
       ]);
 
@@ -270,6 +272,7 @@ export default function DashboardPage() {
                       <TableHead>Size</TableHead>
                       <TableHead>Total Price</TableHead>
                       <TableHead>Status</TableHead>
+                      {user?.role === 'FIRM_ADMIN' && <TableHead>Advisor</TableHead>}
                       <TableHead>Updated</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -308,6 +311,15 @@ export default function DashboardPage() {
                           <TableCell>
                             <StatusBadge status={plot.status} />
                           </TableCell>
+                          {user?.role === 'FIRM_ADMIN' && (
+                            <TableCell className="text-xs">
+                              {plot.creator ? (
+                                <span className="font-medium text-slate-800">{plot.creator.name}</span>
+                              ) : (
+                                <span className="text-slate-400">Admin</span>
+                              )}
+                            </TableCell>
+                          )}
                           <TableCell className="text-xs text-slate-500">
                             {formatDate(plot.updatedAt)}
                           </TableCell>
@@ -338,6 +350,26 @@ export default function DashboardPage() {
                   leftIcon={<Landmark className="h-4 w-4 text-slate-500" />}
                 >
                   Manage Plots Inventory
+                </Button>
+              </Link>
+              <Link href="/rentals" className="block">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start text-xs"
+                  leftIcon={<KeyRound className="h-4 w-4 text-slate-500" />}
+                >
+                  Rental Properties
+                </Button>
+              </Link>
+              <Link href="/agricultural" className="block">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start text-xs"
+                  leftIcon={<Sprout className="h-4 w-4 text-slate-500" />}
+                >
+                  Agricultural Land
                 </Button>
               </Link>
               <Link href="/colonies" className="block">

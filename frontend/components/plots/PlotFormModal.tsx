@@ -328,6 +328,7 @@ export function PlotFormModal({ open, onOpenChange, plot, onSuccess }: PlotFormM
       if (isEditing && plot) {
         const payload: UpdatePlotInput = {
           plotRef: formData.plotRef.trim(),
+          category: plot.category || 'plot',
           colonyId: colonyIdValue,
           plotDate: plotDateValue,
           size: parsedSize,
@@ -348,6 +349,7 @@ export function PlotFormModal({ open, onOpenChange, plot, onSuccess }: PlotFormM
       } else {
         const payload: CreatePlotInput = {
           plotRef: formData.plotRef.trim(),
+          category: 'plot',
           colonyId: colonyIdValue,
           plotDate: plotDateValue,
           size: parsedSize,

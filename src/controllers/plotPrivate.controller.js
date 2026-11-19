@@ -12,6 +12,7 @@ export const getPlotPrivate = asyncHandler(async (req, res) => {
   const result = await plotPrivateService.getPlotPrivate({
     plotId: req.params.plotId,
     firmId: req.tenant.firmId,
+    user: req.user,
   });
 
   return sendSuccess(res, result, 200);
@@ -23,6 +24,7 @@ export const putPlotPrivate = asyncHandler(async (req, res) => {
     firmId: req.tenant.firmId,
     data: req.body,
     userId: req.user.id,
+    user: req.user,
   });
 
   return sendSuccess(res, result, 200);
@@ -34,6 +36,7 @@ export const patchPlotPrivate = asyncHandler(async (req, res) => {
     firmId: req.tenant.firmId,
     data: req.body,
     userId: req.user.id,
+    user: req.user,
   });
 
   return sendSuccess(res, result, 200);
@@ -43,6 +46,7 @@ export const deletePlotPrivate = asyncHandler(async (req, res) => {
   const result = await plotPrivateService.deletePlotPrivate({
     plotId: req.params.plotId,
     firmId: req.tenant.firmId,
+    user: req.user,
   });
 
   return sendSuccess(res, result, 200);

@@ -117,6 +117,20 @@ export function PlotDetailsModal({
             </span>
             <span className="text-slate-500">{formatDateTime(plot.createdAt)}</span>
           </div>
+
+          <div>
+            <span className="text-[10px] font-semibold uppercase text-slate-400 block mb-1">
+              Registered By (Advisor)
+            </span>
+            {plot.creator ? (
+              <div>
+                <span className="font-semibold text-slate-800 block">{plot.creator.name}</span>
+                <span className="text-[10px] text-slate-500 font-mono block">{plot.creator.email}</span>
+              </div>
+            ) : (
+              <span className="font-medium text-slate-700">Firm Administrator</span>
+            )}
+          </div>
         </div>
 
         {/* Video Tour Section (Safe external link) */}

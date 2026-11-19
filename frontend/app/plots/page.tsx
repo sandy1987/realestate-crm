@@ -5,8 +5,10 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { hasPermission, isSuperAdmin } from '@/lib/utils/permissions';
 import { plotsApi } from '@/lib/api/plots';
 import { coloniesApi } from '@/lib/api/colonies';
+import { firmUsersApi } from '@/lib/api/firmUsers';
 import { Plot, PlotStatus, PlotRateType } from '@/types/plot';
 import { Colony } from '@/types/colony';
+import { UserSummary } from '@/types/user';
 import { PaginationMeta } from '@/types/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -22,7 +24,7 @@ import { PlotPrivateModal } from '@/components/plots/PlotPrivateModal';
 import { PlotPrivateFormModal } from '@/components/plots/PlotPrivateFormModal';
 import { DeletePlotPrivateModal } from '@/components/plots/DeletePlotPrivateModal';
 import { PlotPrivate } from '@/types/plotPrivate';
-import { formatArea, formatPlotRate, formatDate } from '@/lib/utils/formatters';
+import { formatArea, formatPlotRate, formatCurrency, formatDate } from '@/lib/utils/formatters';
 import {
   Landmark,
   Plus,
@@ -39,10 +41,21 @@ import {
   Lock,
 } from 'lucide-react';
 
+const PLOT_PRICE_RANGES = [
+  { id: 'all', label: 'All Prices' },
+  { id: 'under_10l', label: 'Under ₹10 Lakh', min: 0, max: 1000000 },
+  { id: '10l_25l', label: '₹10L – ₹25 Lakh', min: 1000000, max: 2500000 },
+  { id: '25l_50l', label: '₹25L – ₹50 Lakh', min: 2500000, max: 5000000 },
+  { id: '50l_1cr', label: '₹50L – ₹1 Crore', min: 5000000, max: 10000000 },
+  { id: '1cr_5cr', label: '₹1 Cr – ₹5 Crore', min: 10000000, max: 50000000 },
+  { id: 'above_5cr', label: 'Above ₹5 Crore', min: 50000000, max: undefined },
+] as const;
+
 export default function PlotsPage() {
   const { user } = useAuth();
 
   const isPlatformAdmin = isSuperAdmin(user);
+  const isFirmAdmin = user?.role === 'FIRM_ADMIN';
   const canRead = hasPermission(user, 'plots:read');
   const canWrite = hasPermission(user, 'plots:write');
   const canDelete = hasPermission(user, 'plots:delete');
@@ -50,6 +63,7 @@ export default function PlotsPage() {
 
   const [plots, setPlots] = useState<Plot[]>([]);
   const [colonies, setColonies] = useState<Colony[]>([]);
+  const [advisors, setAdvisors] = useState<UserSummary[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,8 +71,10 @@ export default function PlotsPage() {
   // Filters and pagination state
   const [search, setSearch] = useState('');
   const [colonyFilter, setColonyFilter] = useState('');
+  const [advisorFilter, setAdvisorFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [rateTypeFilter, setRateTypeFilter] = useState<string>('all');
+  const [priceRangeFilter, setPriceRangeFilter] = useState<string>('all');
   const [activeFilter, setActiveFilter] = useState<'all' | 'true' | 'false'>('all');
   const [page, setPage] = useState(1);
   const limit = 10;
@@ -101,10 +117,25 @@ export default function PlotsPage() {
           // Graceful fallback if colonies cannot be loaded
         });
     }
+
+    // Load advisors if FIRM_ADMIN
+    if (isFirmAdmin) {
+      firmUsersApi
+        .listStaff({ limit: 100 })
+        .then((res) => {
+          if (isMounted) {
+            setAdvisors(res.data);
+          }
+        })
+        .catch(() => {
+          // Graceful fallback if advisors cannot be loaded
+        });
+    }
+
     return () => {
       isMounted = false;
     };
-  }, [isPlatformAdmin, canRead]);
+  }, [isPlatformAdmin, canRead, isFirmAdmin]);
 
   // Execute fetch plots implementation
   const executeFetch = useCallback(
@@ -112,8 +143,10 @@ export default function PlotsPage() {
       targetPage: number,
       targetSearch: string,
       targetColony: string,
+      targetAdvisor: string,
       targetStatus: string,
       targetRateType: string,
+      targetPriceRange: string,
       targetActive: 'all' | 'true' | 'false'
     ) => {
       if (isPlatformAdmin || !canRead) {
@@ -125,14 +158,20 @@ export default function PlotsPage() {
       setIsLoading(true);
       setError(null);
 
+      const selectedRange = PLOT_PRICE_RANGES.find((r) => r.id === targetPriceRange);
+
       try {
         const res = await plotsApi.listPlots({
           page: targetPage,
           limit,
           search: targetSearch.trim() || undefined,
           colonyId: targetColony || undefined,
+          advisorId: targetAdvisor || undefined,
+          category: 'plot',
           status: targetStatus === 'all' ? undefined : (targetStatus as PlotStatus),
           rateType: targetRateType === 'all' ? undefined : (targetRateType as PlotRateType),
+          rateMin: selectedRange && 'min' in selectedRange ? selectedRange.min : undefined,
+          rateMax: selectedRange && 'max' in selectedRange ? selectedRange.max : undefined,
           isActive: targetActive === 'all' ? undefined : targetActive,
           sortBy: 'createdAt',
           sortOrder: 'desc',
@@ -163,7 +202,7 @@ export default function PlotsPage() {
       // Yield to next microtask so setState is not invoked synchronously within effect render
       await Promise.resolve();
       if (isMounted) {
-        void executeFetch(page, search, colonyFilter, statusFilter, rateTypeFilter, activeFilter);
+        void executeFetch(page, search, colonyFilter, advisorFilter, statusFilter, rateTypeFilter, priceRangeFilter, activeFilter);
       }
     }
 
@@ -172,12 +211,12 @@ export default function PlotsPage() {
     return () => {
       isMounted = false;
     };
-  }, [page, search, colonyFilter, statusFilter, rateTypeFilter, activeFilter, executeFetch]);
+  }, [page, search, colonyFilter, advisorFilter, statusFilter, rateTypeFilter, priceRangeFilter, activeFilter, executeFetch]);
 
   // Refresh handler
   const handleRefresh = useCallback(() => {
-    void executeFetch(page, search, colonyFilter, statusFilter, rateTypeFilter, activeFilter);
-  }, [executeFetch, page, search, colonyFilter, statusFilter, rateTypeFilter, activeFilter]);
+    void executeFetch(page, search, colonyFilter, advisorFilter, statusFilter, rateTypeFilter, priceRangeFilter, activeFilter);
+  }, [executeFetch, page, search, colonyFilter, advisorFilter, statusFilter, rateTypeFilter, priceRangeFilter, activeFilter]);
 
   // Handle filter changes (resets pagination to page 1)
   const handleSearchChange = (value: string) => {
@@ -190,6 +229,11 @@ export default function PlotsPage() {
     setPage(1);
   };
 
+  const handleAdvisorFilterChange = (value: string) => {
+    setAdvisorFilter(value);
+    setPage(1);
+  };
+
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value);
     setPage(1);
@@ -197,6 +241,11 @@ export default function PlotsPage() {
 
   const handleRateTypeFilterChange = (value: string) => {
     setRateTypeFilter(value);
+    setPage(1);
+  };
+
+  const handlePriceRangeFilterChange = (value: string) => {
+    setPriceRangeFilter(value);
     setPage(1);
   };
 
@@ -357,6 +406,25 @@ export default function PlotsPage() {
             ))}
           </select>
 
+          {/* Advisor Filter (Admin only) */}
+          {isFirmAdmin && advisors.length > 0 && (
+            <select
+              value={advisorFilter}
+              onChange={(e) => handleAdvisorFilterChange(e.target.value)}
+              className="h-8 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              <option value="">All Advisors</option>
+              {advisors.map((adv) => {
+                const advName = [adv.firstName, adv.lastName].filter(Boolean).join(' ') || adv.email;
+                return (
+                  <option key={adv.id} value={adv.id}>
+                    {advName}
+                  </option>
+                );
+              })}
+            </select>
+          )}
+
           {/* Status Filter */}
           <select
             value={statusFilter}
@@ -379,6 +447,19 @@ export default function PlotsPage() {
             <option value="all">All Pricing Types</option>
             <option value="total">Lump Sum Total</option>
             <option value="per_unit">Per Unit Rate</option>
+          </select>
+
+          {/* Price Range Filter */}
+          <select
+            value={priceRangeFilter}
+            onChange={(e) => handlePriceRangeFilterChange(e.target.value)}
+            className="h-8 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            {PLOT_PRICE_RANGES.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.label}
+              </option>
+            ))}
           </select>
 
           {/* Active / Inactive Filter */}
@@ -438,6 +519,7 @@ export default function PlotsPage() {
                 <TableHead>Size</TableHead>
                 <TableHead>Price / Rate</TableHead>
                 <TableHead>Status</TableHead>
+                {isFirmAdmin && <TableHead>Advisor</TableHead>}
                 <TableHead>Media</TableHead>
                 <TableHead>Plot Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -475,10 +557,31 @@ export default function PlotsPage() {
                       <span className="text-xs font-semibold text-slate-800">
                         {formatPlotRate(plot.rate, plot.rateType, plot.sizeUnit, plot.currency)}
                       </span>
+                      {plot.rateType === 'per_unit' && typeof plot.rate === 'number' && typeof plot.size === 'number' && (
+                        <span className="text-[10px] text-slate-500 font-medium block">
+                          Total: {formatCurrency(plot.rate * plot.size, plot.currency)}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={plot.status} />
                     </TableCell>
+                    {isFirmAdmin && (
+                      <TableCell>
+                        {plot.creator ? (
+                          <div>
+                            <span className="text-xs font-semibold text-slate-800 block">
+                              {plot.creator.name}
+                            </span>
+                            <span className="text-[10px] text-slate-500 font-mono block">
+                              {plot.creator.email}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-400">Admin</span>
+                        )}
+                      </TableCell>
+                    )}
                     <TableCell>
                       {hasVideo ? (
                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">

@@ -96,9 +96,11 @@ function LoginForm() {
       <div className="w-full max-w-md space-y-8">
         {/* Brand Logo & Header */}
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 text-white shadow-md">
-            <Compass className="h-6 w-6" />
-          </div>
+          <img
+            src="/app-logo.jpg"
+            alt="Real Estate Logo"
+            className="mx-auto h-16 w-16 rounded-full object-cover shadow-md border border-slate-200"
+          />
           <h2 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">
             AGENT-Broker CRM
           </h2>
@@ -190,6 +192,18 @@ function LoginForm() {
         <p className="text-center text-xs text-slate-400">
           Secured by Argon2id & multi-tenant isolation. Unregistered sessions are strictly prohibited.
         </p>
+
+        {/* Developer Credit */}
+        <div className="flex flex-col items-center justify-center text-center pt-3 border-t border-slate-200 mt-2">
+          <img
+            src="/yuvasoft-logo.png"
+            alt="Yuvasoft Software Solutions"
+            className="h-8 w-auto object-contain mb-1.5 drop-shadow-xs"
+          />
+          <p className="text-[10px] font-extrabold tracking-wider text-slate-800 uppercase">
+            DEVELOPED BY YUVASOFT SOFTWARE SOLUTIONS PVT LTD
+          </p>
+        </div>
       </div>
     </div>
   );
