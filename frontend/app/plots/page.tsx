@@ -446,7 +446,7 @@ export default function PlotsPage() {
           >
             <option value="all">All Pricing Types</option>
             <option value="total">Lump Sum Total</option>
-            <option value="per_unit">Per Unit Rate</option>
+            <option value="per_unit">Per Sq Ft Rate</option>
           </select>
 
           {/* Price Range Filter */}

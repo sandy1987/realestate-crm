@@ -249,11 +249,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="mt-4 pt-3 border-t border-slate-200 flex flex-col items-center justify-center text-center">
           <img
             src="/yuvasoft-logo.png"
-            alt="Yuvasoft Software Solutions"
+            alt="Yuvasoft Solutions"
             className="h-8 w-auto object-contain mb-1.5 drop-shadow-xs"
           />
           <span className="text-[10px] font-extrabold tracking-wider text-slate-900 uppercase leading-tight">
-            DEVELOPED BY YUVASOFT SOFTWARE SOLUTIONS PVT LTD
+            YUVASOFT SOLUTIONS PVT LTD
           </span>
         </div>
       </div>

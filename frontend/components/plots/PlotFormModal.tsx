@@ -548,7 +548,7 @@ export function PlotFormModal({ open, onOpenChange, plot, onSuccess }: PlotFormM
             >
               {PLOT_RATE_TYPES.map((rt) => (
                 <option key={rt} value={rt}>
-                  {rt === 'total' ? 'Total Lump Sum' : 'Per Unit Area'}
+                  {rt === 'total' ? 'Total Lump Sum' : 'Per Sq Ft'}
                 </option>
               ))}
             </select>

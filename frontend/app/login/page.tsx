@@ -197,11 +197,11 @@ function LoginForm() {
         <div className="flex flex-col items-center justify-center text-center pt-3 border-t border-slate-200 mt-2">
           <img
             src="/yuvasoft-logo.png"
-            alt="Yuvasoft Software Solutions"
+            alt="Yuvasoft Solutions"
             className="h-8 w-auto object-contain mb-1.5 drop-shadow-xs"
           />
           <p className="text-[10px] font-extrabold tracking-wider text-slate-800 uppercase">
-            DEVELOPED BY YUVASOFT SOFTWARE SOLUTIONS PVT LTD
+            YUVASOFT SOLUTIONS PVT LTD
           </p>
         </div>
       </div>
