@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/Loading';
 import { CreateFirmModal } from './CreateFirmModal';
 import { FirmDetailsModal } from './FirmDetailsModal';
 import { FirmStatusModal } from './FirmStatusModal';
+import { FirmCloudinaryModal } from './FirmCloudinaryModal';
 import { formatDate } from '@/lib/utils/formatters';
 import {
   Building2,
@@ -25,6 +26,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
+  Cloud,
 } from 'lucide-react';
 
 export function PlatformFirmsView() {
@@ -43,6 +45,9 @@ export function PlatformFirmsView() {
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [selectedFirmForStatus, setSelectedFirmForStatus] = useState<Firm | null>(null);
   const [statusMode, setStatusMode] = useState<'suspend' | 'activate'>('suspend');
+
+  const [cloudinaryModalOpen, setCloudinaryModalOpen] = useState(false);
+  const [selectedFirmForCloudinary, setSelectedFirmForCloudinary] = useState<Firm | null>(null);
 
   // Success alert on new provisioning
   const [lastProvisioned, setLastProvisioned] = useState<ProvisionFirmResult | null>(null);
@@ -122,6 +127,15 @@ export function PlatformFirmsView() {
     setSelectedFirmForStatus(firm);
     setStatusMode(mode);
     setStatusModalOpen(true);
+  };
+
+  const handleCloudinaryClick = (firm: Firm) => {
+    setSelectedFirmForCloudinary(firm);
+    setCloudinaryModalOpen(true);
+  };
+
+  const handleCloudinarySuccess = (updatedFirm: Firm) => {
+    setFirms((prev) => prev.map((f) => (f.id === updatedFirm.id ? updatedFirm : f)));
   };
 
   return (
@@ -244,7 +258,15 @@ export function PlatformFirmsView() {
                 <TableRow key={firm.id}>
                   <TableCell>
                     <div className="font-semibold text-slate-900">{firm.name}</div>
-                    <span className="text-[10px] text-slate-400 font-mono">ID: {firm.id}</span>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] text-slate-400 font-mono">ID: {firm.id}</span>
+                      {firm.cloudinary?.isConfigured && (
+                        <span className="inline-flex items-center gap-0.5 text-[9px] bg-blue-50 text-blue-700 border border-blue-200 px-1 py-0.2 rounded font-medium">
+                          <Cloud className="h-2.5 w-2.5" />
+                          Dedicated Cloud
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <span className="font-mono text-xs text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
@@ -266,6 +288,25 @@ export function PlatformFirmsView() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleCloudinaryClick(firm)}
+                        aria-label={`Configure Cloudinary storage for ${firm.name}`}
+                        className="h-8 w-8 p-0 hover:text-blue-600"
+                        title={
+                          firm.cloudinary?.isConfigured
+                            ? `Custom Cloud: ${firm.cloudinary.cloudName}`
+                            : 'Configure Cloudinary Storage'
+                        }
+                      >
+                        <Cloud
+                          className={`h-3.5 w-3.5 ${
+                            firm.cloudinary?.isConfigured ? 'text-blue-600' : 'text-slate-400'
+                          }`}
+                        />
+                      </Button>
+
                       <Button
                         size="sm"
                         variant="ghost"
@@ -364,6 +405,16 @@ export function PlatformFirmsView() {
           firm={selectedFirmForStatus}
           mode={statusMode}
           onSuccess={handleRefresh}
+        />
+      )}
+
+      {/* Cloudinary Media Storage Modal */}
+      {cloudinaryModalOpen && (
+        <FirmCloudinaryModal
+          open={cloudinaryModalOpen}
+          onOpenChange={setCloudinaryModalOpen}
+          firm={selectedFirmForCloudinary}
+          onSuccess={handleCloudinarySuccess}
         />
       )}
     </div>

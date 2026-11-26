@@ -7,7 +7,7 @@
 
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendSuccess, sendError } from '../utils/apiResponse.js';
-import { uploadBufferToCloudinary, deleteFromCloudinary } from '../config/cloudinary.js';
+import { uploadBufferToCloudinary, deleteFromCloudinary, resolveFirmCloudinary } from '../config/cloudinary.js';
 
 const ALLOWED_IMAGE_MIMES = new Set([
   'image/jpeg',
@@ -35,6 +35,7 @@ const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100 MB
  */
 export const uploadMedia = asyncHandler(async (req, res) => {
   const firmId = req.tenant.firmId.toString();
+  const credentials = await resolveFirmCloudinary(firmId);
   const rawFiles = req.files || (req.file ? [req.file] : []);
 
   if (!rawFiles || rawFiles.length === 0) {
@@ -83,10 +84,14 @@ export const uploadMedia = asyncHandler(async (req, res) => {
         ? `agent-broker/${firmId}/colonies/maps`
         : `agent-broker/${firmId}/plots/${resourceType === 'video' ? 'videos' : 'images'}`;
 
-    const uploadRes = await uploadBufferToCloudinary(file.buffer, {
-      resource_type: resourceType,
-      folder,
-    });
+    const uploadRes = await uploadBufferToCloudinary(
+      file.buffer,
+      {
+        resource_type: resourceType,
+        folder,
+      },
+      credentials
+    );
 
     results.push({
       url: uploadRes.secure_url || uploadRes.url,
@@ -113,6 +118,7 @@ export const uploadMedia = asyncHandler(async (req, res) => {
  */
 export const deleteMedia = asyncHandler(async (req, res) => {
   const firmId = req.tenant.firmId.toString();
+  const credentials = await resolveFirmCloudinary(firmId);
   const publicId = req.params.publicId || req.query.publicId || req.body?.publicId;
   const resourceType = req.query.resourceType || req.body?.resourceType || 'image';
 
@@ -134,6 +140,6 @@ export const deleteMedia = asyncHandler(async (req, res) => {
     });
   }
 
-  const result = await deleteFromCloudinary(publicId, { resource_type: resourceType });
+  const result = await deleteFromCloudinary(publicId, { resource_type: resourceType }, credentials);
   return sendSuccess(res, { result, publicId });
 });

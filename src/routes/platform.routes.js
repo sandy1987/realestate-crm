@@ -13,7 +13,7 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import { requirePlatformAdmin } from '../middleware/platform.middleware.js';
 import { validate } from '../middleware/validate.middleware.js';
-import { createFirmSchema } from '../schemas/firm.schema.js';
+import { createFirmSchema, updateFirmCloudinarySchema, testFirmCloudinarySchema } from '../schemas/firm.schema.js';
 import { queryPlatformAuditSchema } from '../schemas/audit.schema.js';
 import * as platformController from '../controllers/platform.controller.js';
 import * as auditController from '../controllers/audit.controller.js';
@@ -30,6 +30,19 @@ router.get('/firms', platformController.listFirms);
 router.get('/firms/:firmId', platformController.getFirm);
 router.post('/firms/:firmId/suspend', platformController.suspendFirm);
 router.post('/firms/:firmId/activate', platformController.activateFirm);
+
+// Dedicated Tenant Cloudinary Storage Management (SUPER_ADMIN only)
+router.put(
+  '/firms/:firmId/cloudinary',
+  validate(updateFirmCloudinarySchema),
+  platformController.updateFirmCloudinary
+);
+router.delete('/firms/:firmId/cloudinary', platformController.resetFirmCloudinary);
+router.post(
+  '/firms/:firmId/cloudinary/test',
+  validate(testFirmCloudinarySchema),
+  platformController.testFirmCloudinary
+);
 
 // Platform Audit Log Trail (SUPER_ADMIN only)
 router.get(

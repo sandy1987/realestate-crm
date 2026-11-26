@@ -63,6 +63,33 @@ const firmSchema = new mongoose.Schema(
       },
     },
 
+    cloudinary: {
+      cloudName: {
+        type: String,
+        trim: true,
+        default: null,
+      },
+      apiKey: {
+        type: String,
+        trim: true,
+        default: null,
+      },
+      apiSecret: {
+        type: String,
+        trim: true,
+        select: false,
+        default: null,
+      },
+      isConfigured: {
+        type: Boolean,
+        default: false,
+      },
+      configuredAt: {
+        type: Date,
+        default: null,
+      },
+    },
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -109,6 +136,13 @@ firmSchema.methods.toSafeObject = function () {
     settings: {
       allowedVideoProviders: this.settings?.allowedVideoProviders || ['youtube', 'vimeo', 'cloudinary'],
       defaultCurrency: this.settings?.defaultCurrency || 'INR',
+    },
+    cloudinary: {
+      cloudName: this.cloudinary?.cloudName || null,
+      apiKey: this.cloudinary?.apiKey || null,
+      isConfigured: Boolean(this.cloudinary?.isConfigured),
+      configuredAt: this.cloudinary?.configuredAt || null,
+      hasApiSecret: Boolean(this.cloudinary?.apiSecret),
     },
     createdBy: this.createdBy ? this.createdBy.toString() : null,
     createdAt: this.createdAt,

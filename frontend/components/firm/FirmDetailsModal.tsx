@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Firm } from '@/types/firm';
 import { formatDate, formatDateTime } from '@/lib/utils/formatters';
-import { Building2, Globe, Mail, Phone, Calendar, Video, ShieldCheck } from 'lucide-react';
+import { Building2, Globe, Mail, Phone, Calendar, Video, ShieldCheck, Cloud } from 'lucide-react';
 
 export interface FirmDetailsModalProps {
   open: boolean;
@@ -110,6 +110,25 @@ export function FirmDetailsModal({ open, onOpenChange, firm }: FirmDetailsModalP
                 {p}
               </span>
             ))}
+          </div>
+        </div>
+
+        {/* Media Storage */}
+        <div className="p-3 bg-white rounded-xl border border-slate-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Cloud className="h-3.5 w-3.5 text-blue-600" />
+              <span className="font-semibold text-slate-800">Media Storage (Cloudinary):</span>
+            </div>
+            {firm.cloudinary?.isConfigured ? (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Dedicated: {firm.cloudinary.cloudName}
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                Platform Default (.env)
+              </span>
+            )}
           </div>
         </div>
 

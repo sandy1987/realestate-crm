@@ -80,7 +80,32 @@ export const updateFirmSchema = z.object({
     .optional(),
 });
 
+export const updateFirmCloudinarySchema = z.object({
+  cloudName: z
+    .string({ required_error: 'Cloud Name is required' })
+    .trim()
+    .min(1, 'Cloud Name cannot be empty'),
+  apiKey: z
+    .string({ required_error: 'API Key is required' })
+    .trim()
+    .min(1, 'API Key cannot be empty'),
+  apiSecret: z
+    .string({ required_error: 'API Secret is required' })
+    .trim()
+    .min(1, 'API Secret cannot be empty'),
+});
+
+export const testFirmCloudinarySchema = z
+  .object({
+    cloudName: z.string().trim().optional(),
+    apiKey: z.string().trim().optional(),
+    apiSecret: z.string().trim().optional(),
+  })
+  .optional();
+
 export default {
   createFirmSchema,
   updateFirmSchema,
+  updateFirmCloudinarySchema,
+  testFirmCloudinarySchema,
 };

@@ -12,6 +12,7 @@ import { parsePagination, buildPaginationMeta } from '../utils/paginate.js';
 import { hashPassword } from '../utils/password.js';
 import { recordAuditEvent } from './audit.service.js';
 import { AUDIT_EVENTS } from '../constants/auditEvents.js';
+import { testCloudinaryCredentials } from '../config/cloudinary.js';
 
 /**
  * Provisions a new firm tenant organization.
@@ -239,10 +240,136 @@ export async function activateFirm(firmId) {
   return firm.toSafeObject();
 }
 
+/**
+ * Updates dedicated Cloudinary configuration for a firm after validating credentials.
+ *
+ * @param {string} firmId
+ * @param {object} params
+ * @param {string} params.cloudName
+ * @param {string} params.apiKey
+ * @param {string} params.apiSecret
+ * @returns {Promise<object>}
+ */
+export async function updateFirmCloudinary(firmId, { cloudName, apiKey, apiSecret }) {
+  if (!isValidObjectId(firmId)) {
+    const error = new Error('Invalid firm identifier format');
+    error.statusCode = 400;
+    error.code = 'INVALID_IDENTIFIER';
+    throw error;
+  }
+
+  // 1. Verify credentials with Cloudinary ping
+  const testRes = await testCloudinaryCredentials({ cloudName, apiKey, apiSecret });
+  if (!testRes.success) {
+    const error = new Error(`Cloudinary connection test failed: ${testRes.error || 'Invalid credentials'}`);
+    error.statusCode = 400;
+    error.code = 'INVALID_CLOUDINARY_CREDENTIALS';
+    throw error;
+  }
+
+  // 2. Persist to firm document
+  const firm = await Firm.findById(firmId);
+  if (!firm) {
+    const error = new Error('Firm not found');
+    error.statusCode = 404;
+    error.code = 'FIRM_NOT_FOUND';
+    throw error;
+  }
+
+  firm.cloudinary = {
+    cloudName,
+    apiKey,
+    apiSecret,
+    isConfigured: true,
+    configuredAt: new Date(),
+  };
+
+  await firm.save();
+  return firm.toSafeObject();
+}
+
+/**
+ * Resets a firm's Cloudinary storage to fallback to platform default.
+ *
+ * @param {string} firmId
+ * @returns {Promise<object>}
+ */
+export async function resetFirmCloudinary(firmId) {
+  if (!isValidObjectId(firmId)) {
+    const error = new Error('Invalid firm identifier format');
+    error.statusCode = 400;
+    error.code = 'INVALID_IDENTIFIER';
+    throw error;
+  }
+
+  const firm = await Firm.findById(firmId);
+  if (!firm) {
+    const error = new Error('Firm not found');
+    error.statusCode = 404;
+    error.code = 'FIRM_NOT_FOUND';
+    throw error;
+  }
+
+  firm.cloudinary = {
+    cloudName: null,
+    apiKey: null,
+    apiSecret: null,
+    isConfigured: false,
+    configuredAt: null,
+  };
+
+  await firm.save();
+  return firm.toSafeObject();
+}
+
+/**
+ * Tests connection to Cloudinary for a specific firm (using passed credentials or stored).
+ *
+ * @param {string} firmId
+ * @param {object|null} [inputCredentials]
+ * @returns {Promise<{ success: boolean, status?: string, error?: string }>}
+ */
+export async function testFirmCloudinary(firmId, inputCredentials = null) {
+  if (!isValidObjectId(firmId)) {
+    const error = new Error('Invalid firm identifier format');
+    error.statusCode = 400;
+    error.code = 'INVALID_IDENTIFIER';
+    throw error;
+  }
+
+  if (inputCredentials?.cloudName && inputCredentials?.apiKey && inputCredentials?.apiSecret) {
+    return testCloudinaryCredentials(inputCredentials);
+  }
+
+  const firm = await Firm.findById(firmId).select('+cloudinary.apiSecret');
+  if (!firm) {
+    const error = new Error('Firm not found');
+    error.statusCode = 404;
+    error.code = 'FIRM_NOT_FOUND';
+    throw error;
+  }
+
+  if (!firm.cloudinary?.isConfigured || !firm.cloudinary?.apiSecret) {
+    return {
+      success: false,
+      error: 'Firm does not have custom Cloudinary storage configured.',
+    };
+  }
+
+  return testCloudinaryCredentials({
+    cloudName: firm.cloudinary.cloudName,
+    apiKey: firm.cloudinary.apiKey,
+    apiSecret: firm.cloudinary.apiSecret,
+  });
+}
+
 export default {
   provisionFirm,
   listFirms,
   getFirmById,
   suspendFirm,
   activateFirm,
+  updateFirmCloudinary,
+  resetFirmCloudinary,
+  testFirmCloudinary,
 };

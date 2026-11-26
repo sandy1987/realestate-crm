@@ -12,6 +12,14 @@ export interface FirmSettings {
   defaultCurrency: string;
 }
 
+export interface FirmCloudinaryConfig {
+  cloudName: string | null;
+  apiKey: string | null;
+  isConfigured: boolean;
+  configuredAt?: string | null;
+  hasApiSecret?: boolean;
+}
+
 export interface Firm {
   id: string;
   _id?: string;
@@ -21,9 +29,22 @@ export interface Firm {
   contactPhone: string | null;
   isActive: boolean;
   settings: FirmSettings;
+  cloudinary?: FirmCloudinaryConfig;
   createdBy?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface UpdateFirmCloudinaryInput {
+  cloudName: string;
+  apiKey: string;
+  apiSecret: string;
+}
+
+export interface TestCloudinaryResult {
+  success: boolean;
+  status?: string;
+  error?: string;
 }
 
 export interface CreateFirmInput {

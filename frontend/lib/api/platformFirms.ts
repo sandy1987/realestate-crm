@@ -4,6 +4,8 @@ import {
   CreateFirmInput,
   ProvisionFirmResult,
   FirmQueryParams,
+  UpdateFirmCloudinaryInput,
+  TestCloudinaryResult,
 } from '@/types/firm';
 
 /**
@@ -50,6 +52,36 @@ export const platformFirmsApi = {
    */
   async activateFirm(firmId: string): Promise<Firm> {
     const res = await apiClient.post<Firm>(`/platform/firms/${firmId}/activate`);
+    return res.data;
+  },
+
+  /**
+   * Updates dedicated Cloudinary storage credentials for a firm.
+   */
+  async updateFirmCloudinary(firmId: string, data: UpdateFirmCloudinaryInput): Promise<Firm> {
+    const res = await apiClient.put<Firm>(`/platform/firms/${firmId}/cloudinary`, data);
+    return res.data;
+  },
+
+  /**
+   * Resets a firm's storage back to platform default.
+   */
+  async resetFirmCloudinary(firmId: string): Promise<Firm> {
+    const res = await apiClient.delete<Firm>(`/platform/firms/${firmId}/cloudinary`);
+    return res.data;
+  },
+
+  /**
+   * Tests Cloudinary connectivity for a firm.
+   */
+  async testFirmCloudinary(
+    firmId: string,
+    data?: Partial<UpdateFirmCloudinaryInput>
+  ): Promise<TestCloudinaryResult> {
+    const res = await apiClient.post<TestCloudinaryResult>(
+      `/platform/firms/${firmId}/cloudinary/test`,
+      data || {}
+    );
     return res.data;
   },
 };

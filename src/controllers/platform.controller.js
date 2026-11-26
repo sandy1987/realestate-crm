@@ -37,10 +37,28 @@ export const activateFirm = asyncHandler(async (req, res) => {
   return sendSuccess(res, result, 200);
 });
 
+export const updateFirmCloudinary = asyncHandler(async (req, res) => {
+  const result = await firmService.updateFirmCloudinary(req.params.firmId, req.body);
+  return sendSuccess(res, result, 200);
+});
+
+export const resetFirmCloudinary = asyncHandler(async (req, res) => {
+  const result = await firmService.resetFirmCloudinary(req.params.firmId);
+  return sendSuccess(res, result, 200);
+});
+
+export const testFirmCloudinary = asyncHandler(async (req, res) => {
+  const result = await firmService.testFirmCloudinary(req.params.firmId, req.body);
+  return sendSuccess(res, result, 200);
+});
+
 export default {
   createFirm,
   listFirms,
   getFirm,
   suspendFirm,
   activateFirm,
+  updateFirmCloudinary,
+  resetFirmCloudinary,
+  testFirmCloudinary,
 };
