@@ -3,10 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { Plot } from '@/types/plot';
 import { plotsApi, PlotWhatsAppShareData } from '@/lib/api/plots';
-import { Copy, Check, ExternalLink, Loader2, Phone } from 'lucide-react';
+import { Copy, Check, ExternalLink, Loader2 } from 'lucide-react';
 
 export interface WhatsAppShareModalProps {
   open: boolean;
@@ -32,14 +31,12 @@ export function WhatsAppShareModal({ open, onOpenChange, plot }: WhatsAppShareMo
   const [shareData, setShareData] = useState<PlotWhatsAppShareData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [phoneInput, setPhoneInput] = useState('');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!open || !plot) {
       setShareData(null);
       setError(null);
-      setPhoneInput('');
       setCopied(false);
       return;
     }
@@ -83,23 +80,11 @@ export function WhatsAppShareModal({ open, onOpenChange, plot }: WhatsAppShareMo
     if (!shareData) return;
 
     const encodedText = encodeURIComponent(shareData.messageText);
-    const cleanedPhone = phoneInput.replace(/[^0-9]/g, '');
-
-    // Is mobile browser check
     const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    let targetUrl = '';
-    if (cleanedPhone) {
-      // Direct message to specific phone number
-      targetUrl = isMobile
-        ? `https://api.whatsapp.com/send?phone=${cleanedPhone}&text=${encodedText}`
-        : `https://web.whatsapp.com/send?phone=${cleanedPhone}&text=${encodedText}`;
-    } else {
-      // Direct share allowing user to select any contact or group
-      targetUrl = isMobile
-        ? `https://api.whatsapp.com/send?text=${encodedText}`
-        : `https://web.whatsapp.com/send?text=${encodedText}`;
-    }
+    const targetUrl = isMobile
+      ? `https://api.whatsapp.com/send?text=${encodedText}`
+      : `https://web.whatsapp.com/send?text=${encodedText}`;
 
     window.open(targetUrl, '_blank', 'noopener,noreferrer');
   };
@@ -169,24 +154,6 @@ export function WhatsAppShareModal({ open, onOpenChange, plot }: WhatsAppShareMo
               <div className="relative rounded-xl border border-slate-200 bg-slate-50 p-3 max-h-48 overflow-y-auto text-xs text-slate-700 whitespace-pre-wrap font-sans select-all leading-relaxed shadow-inner">
                 {shareData.messageText}
               </div>
-            </div>
-
-            {/* Optional Specific Phone Number */}
-            <div className="rounded-xl border border-slate-200 p-3 bg-white space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5 text-slate-400" />
-                Optional Client Mobile Number
-              </label>
-              <Input
-                type="tel"
-                placeholder="e.g. 919876543210 (with country code)"
-                value={phoneInput}
-                onChange={(e) => setPhoneInput(e.target.value)}
-                className="h-8 text-xs"
-              />
-              <p className="text-[10px] text-slate-500">
-                Leave blank to open WhatsApp Web and choose <strong>any contact or group</strong> from your chat list.
-              </p>
             </div>
           </div>
         )}
