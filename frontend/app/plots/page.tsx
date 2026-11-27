@@ -364,7 +364,7 @@ export default function PlotsPage() {
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
           <div className="relative flex-1">
             <Input
-              placeholder="Search by plot number, reference, or description..."
+              placeholder="Search by plot number, colony, reference, or description..."
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
               leftIcon={<Search className="h-4 w-4" />}

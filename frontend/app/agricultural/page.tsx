@@ -251,7 +251,7 @@ export default function AgriculturalPage() {
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
           <div className="relative flex-1">
             <Input
-              placeholder="Search by land reference, village, or description..."
+              placeholder="Search by land reference, colony, village, or description..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);

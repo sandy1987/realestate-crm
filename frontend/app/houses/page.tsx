@@ -345,7 +345,7 @@ export default function HousesPage() {
         <div className="relative min-w-[200px] flex-1">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <Input
-            placeholder="Search house no, society, BHK, or keywords..."
+            placeholder="Search house no, colony, society, BHK, or keywords..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);

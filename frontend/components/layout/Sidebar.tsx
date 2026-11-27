@@ -167,7 +167,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/70">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            {isSuperAdmin ? 'Platform Scope' : 'Tenant Workspace'}
+            {isSuperAdmin ? 'Platform Scope' : 'Firm Workspace'}
           </span>
           <span
             className={cn(

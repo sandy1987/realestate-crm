@@ -250,7 +250,7 @@ export default function RentalsPage() {
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
           <div className="relative flex-1">
             <Input
-              placeholder="Search by rental code, location, or description..."
+              placeholder="Search by rental code, colony, location, or description..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);

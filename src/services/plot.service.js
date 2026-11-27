@@ -223,15 +223,30 @@ export async function listPlots({ firmId, query = {}, user = null }) {
     filter.bhk = query.bhk;
   }
 
-  // Text search
+  // Text search (matches plotRef, description, societyName, houseType, and colony name/city)
   if (query.search) {
     const searchRegex = new RegExp(escapeRegex(query.search), 'i');
+
+    // Find colonies within the firm matching the search query
+    const matchingColonies = await Colony.find({
+      firmId,
+      $or: [
+        { name: searchRegex },
+        { city: searchRegex },
+      ],
+    }).select('_id');
+    const matchingColonyIds = matchingColonies.map((c) => c._id);
+
     filter.$or = [
       { plotRef: searchRegex },
       { description: searchRegex },
       { societyName: searchRegex },
       { houseType: searchRegex },
     ];
+
+    if (matchingColonyIds.length > 0) {
+      filter.$or.push({ colonyId: { $in: matchingColonyIds } });
+    }
   }
 
   // Exact or partial plotRef filter
