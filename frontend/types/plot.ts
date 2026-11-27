@@ -26,9 +26,18 @@ export const PLOT_STATUSES = ['available', 'sold', 'reserved', 'on_hold'] as con
 
 export type PlotStatus = (typeof PLOT_STATUSES)[number];
 
-export type PropertyCategory = 'plot' | 'rental' | 'agricultural';
+export type PropertyCategory = 'plot' | 'rental' | 'agricultural' | 'house';
 export type RentalFurnishing = 'unfurnished' | 'semi_furnished' | 'fully_furnished';
 export type AgriListingType = 'sale' | 'rent' | 'lease';
+export type HouseType =
+  | 'flat'
+  | 'independent_house'
+  | 'villa'
+  | 'duplex'
+  | 'builder_floor'
+  | 'penthouse'
+  | 'studio'
+  | string;
 
 export interface PlotImage {
   url: string;
@@ -79,6 +88,19 @@ export interface Plot {
   electricity?: string | null;
   fencing?: string | null;
   soilType?: string | null;
+  houseType?: string | null;
+  bhk?: string | null;
+  societyName?: string | null;
+  floorNo?: string | null;
+  totalFloors?: number | null;
+  bathrooms?: number | null;
+  balconies?: number | null;
+  builtUpArea?: number | null;
+  plotArea?: number | null;
+  parking?: string | null;
+  lift?: boolean | null;
+  constructionStatus?: string | null;
+  facing?: string | null;
   images?: PlotImage[];
   videoUrl: string | null;
   videoProvider: 'youtube' | 'vimeo' | 'cloudinary' | null;
@@ -116,6 +138,19 @@ export interface CreatePlotInput {
   electricity?: string | null;
   fencing?: string | null;
   soilType?: string | null;
+  houseType?: string | null;
+  bhk?: string | null;
+  societyName?: string | null;
+  floorNo?: string | null;
+  totalFloors?: number | null;
+  bathrooms?: number | null;
+  balconies?: number | null;
+  builtUpArea?: number | null;
+  plotArea?: number | null;
+  parking?: string | null;
+  lift?: boolean | null;
+  constructionStatus?: string | null;
+  facing?: string | null;
   images?: PlotImage[];
   videoUrl?: string | null;
   videoProvider?: 'youtube' | 'vimeo' | 'cloudinary' | null;
@@ -148,6 +183,19 @@ export interface UpdatePlotInput {
   electricity?: string | null;
   fencing?: string | null;
   soilType?: string | null;
+  houseType?: string | null;
+  bhk?: string | null;
+  societyName?: string | null;
+  floorNo?: string | null;
+  totalFloors?: number | null;
+  bathrooms?: number | null;
+  balconies?: number | null;
+  builtUpArea?: number | null;
+  plotArea?: number | null;
+  parking?: string | null;
+  lift?: boolean | null;
+  constructionStatus?: string | null;
+  facing?: string | null;
   images?: PlotImage[];
   videoUrl?: string | null;
   videoProvider?: 'youtube' | 'vimeo' | 'cloudinary' | null;
@@ -176,6 +224,8 @@ export interface PlotQueryParams {
   category?: PropertyCategory | 'all';
   rentalType?: string;
   listingType?: AgriListingType;
+  houseType?: string;
+  bhk?: string;
   advisorId?: string;
   createdBy?: string;
 }

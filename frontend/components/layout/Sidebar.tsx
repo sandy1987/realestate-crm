@@ -19,6 +19,7 @@ import {
   UserCheck,
   KeyRound,
   Sprout,
+  Home,
 } from 'lucide-react';
 
 interface NavItem {
@@ -42,6 +43,13 @@ const allNavItems: NavItem[] = [
     name: 'Plots',
     href: '/plots',
     icon: Landmark,
+    roleRequirement: 'TENANT_ONLY',
+    permissionRequirement: 'plots:read',
+  },
+  {
+    name: 'Houses & Flats',
+    href: '/houses',
+    icon: Home,
     roleRequirement: 'TENANT_ONLY',
     permissionRequirement: 'plots:read',
   },

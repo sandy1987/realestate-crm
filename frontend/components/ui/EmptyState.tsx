@@ -4,7 +4,7 @@ import { Inbox } from 'lucide-react';
 import { Button } from './Button';
 
 export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
-  icon?: React.ReactNode;
+  icon?: React.ReactNode | React.ElementType;
   title: string;
   description?: string;
   actionLabel?: string;
@@ -20,6 +20,16 @@ export function EmptyState({
   className,
   ...props
 }: EmptyStateProps) {
+  // Render icon whether passed as a JSX element (e.g. <Home className="h-6 w-6" />)
+  // or as a component reference (e.g. Home)
+  const renderedIcon = React.isValidElement(icon) ? (
+    icon
+  ) : typeof icon === 'function' || (typeof icon === 'object' && icon !== null && '$$typeof' in icon) ? (
+    React.createElement(icon as React.ElementType, { className: 'h-6 w-6' })
+  ) : (
+    <Inbox className="h-6 w-6" />
+  );
+
   return (
     <div
       className={cn(
@@ -29,7 +39,7 @@ export function EmptyState({
       {...props}
     >
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500 mb-3">
-        {icon || <Inbox className="h-6 w-6" />}
+        {renderedIcon}
       </div>
       <h4 className="text-sm font-semibold text-slate-800">{title}</h4>
       {description && <p className="text-xs text-slate-500 max-w-sm mt-1 mb-4">{description}</p>}

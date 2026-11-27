@@ -162,7 +162,7 @@ const plotSchema = new mongoose.Schema(
 
     category: {
       type: String,
-      enum: ['plot', 'rental', 'agricultural'],
+      enum: ['plot', 'rental', 'agricultural', 'house'],
       default: 'plot',
       index: true,
     },
@@ -237,6 +237,80 @@ const plotSchema = new mongoose.Schema(
       type: String,
       trim: true,
       maxlength: [200, 'Soil type cannot exceed 200 characters'],
+      default: null,
+    },
+
+    // --- Specialized House & Flat Properties fields ---
+    houseType: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    bhk: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    societyName: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Society name cannot exceed 200 characters'],
+      default: null,
+    },
+
+    floorNo: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    totalFloors: {
+      type: Number,
+      default: null,
+    },
+
+    bathrooms: {
+      type: Number,
+      default: null,
+    },
+
+    balconies: {
+      type: Number,
+      default: null,
+    },
+
+    builtUpArea: {
+      type: Number,
+      default: null,
+    },
+
+    plotArea: {
+      type: Number,
+      default: null,
+    },
+
+    parking: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    lift: {
+      type: Boolean,
+      default: null,
+    },
+
+    constructionStatus: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    facing: {
+      type: String,
+      trim: true,
       default: null,
     },
 
@@ -358,6 +432,19 @@ plotSchema.methods.toSafeObject = function () {
     electricity: this.electricity || null,
     fencing: this.fencing || null,
     soilType: this.soilType || null,
+    houseType: this.houseType || null,
+    bhk: this.bhk || null,
+    societyName: this.societyName || null,
+    floorNo: this.floorNo || null,
+    totalFloors: this.totalFloors ?? null,
+    bathrooms: this.bathrooms ?? null,
+    balconies: this.balconies ?? null,
+    builtUpArea: this.builtUpArea ?? null,
+    plotArea: this.plotArea ?? null,
+    parking: this.parking || null,
+    lift: this.lift ?? null,
+    constructionStatus: this.constructionStatus || null,
+    facing: this.facing || null,
     size: this.size,
     sizeUnit: this.sizeUnit,
     dimensions: this.dimensions || null,

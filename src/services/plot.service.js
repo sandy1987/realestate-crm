@@ -129,6 +129,19 @@ export async function createPlot({ firmId, data, userId, firmSettings }) {
     electricity: data.electricity || null,
     fencing: data.fencing || null,
     soilType: data.soilType || null,
+    houseType: data.houseType || null,
+    bhk: data.bhk || null,
+    societyName: data.societyName || null,
+    floorNo: data.floorNo || null,
+    totalFloors: data.totalFloors !== undefined ? data.totalFloors : null,
+    bathrooms: data.bathrooms !== undefined ? data.bathrooms : null,
+    balconies: data.balconies !== undefined ? data.balconies : null,
+    builtUpArea: data.builtUpArea !== undefined ? data.builtUpArea : null,
+    plotArea: data.plotArea !== undefined ? data.plotArea : null,
+    parking: data.parking || null,
+    lift: data.lift !== undefined ? data.lift : null,
+    constructionStatus: data.constructionStatus || null,
+    facing: data.facing || null,
     images,
     videoUrl: videoData?.url || null,
     videoProvider: videoData?.provider || null,
@@ -203,6 +216,12 @@ export async function listPlots({ firmId, query = {}, user = null }) {
   if (query.listingType) {
     filter.listingType = query.listingType;
   }
+  if (query.houseType) {
+    filter.houseType = query.houseType;
+  }
+  if (query.bhk) {
+    filter.bhk = query.bhk;
+  }
 
   // Text search
   if (query.search) {
@@ -210,6 +229,8 @@ export async function listPlots({ firmId, query = {}, user = null }) {
     filter.$or = [
       { plotRef: searchRegex },
       { description: searchRegex },
+      { societyName: searchRegex },
+      { houseType: searchRegex },
     ];
   }
 
@@ -509,6 +530,19 @@ export async function updatePlot({ plotId, firmId, data, userId, firmSettings, u
   if (data.electricity !== undefined) plot.electricity = data.electricity;
   if (data.fencing !== undefined) plot.fencing = data.fencing;
   if (data.soilType !== undefined) plot.soilType = data.soilType;
+  if (data.houseType !== undefined) plot.houseType = data.houseType;
+  if (data.bhk !== undefined) plot.bhk = data.bhk;
+  if (data.societyName !== undefined) plot.societyName = data.societyName;
+  if (data.floorNo !== undefined) plot.floorNo = data.floorNo;
+  if (data.totalFloors !== undefined) plot.totalFloors = data.totalFloors;
+  if (data.bathrooms !== undefined) plot.bathrooms = data.bathrooms;
+  if (data.balconies !== undefined) plot.balconies = data.balconies;
+  if (data.builtUpArea !== undefined) plot.builtUpArea = data.builtUpArea;
+  if (data.plotArea !== undefined) plot.plotArea = data.plotArea;
+  if (data.parking !== undefined) plot.parking = data.parking;
+  if (data.lift !== undefined) plot.lift = data.lift;
+  if (data.constructionStatus !== undefined) plot.constructionStatus = data.constructionStatus;
+  if (data.facing !== undefined) plot.facing = data.facing;
   if (data.isActive !== undefined) plot.isActive = data.isActive;
 
   plot.updatedBy = userId;

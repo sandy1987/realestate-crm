@@ -24,6 +24,13 @@ export const firmUsersApi = {
   },
 
   /**
+   * Alias for listStaff for convenience and backward compatibility.
+   */
+  async listFirmUsers(params?: FirmUserQueryParams): Promise<ApiResponseResult<UserSummary[]>> {
+    return this.listStaff(params);
+  },
+
+  /**
    * Retrieves single user account details scoped to the authenticated firm.
    */
   async getStaff(userId: string): Promise<UserSummary> {
