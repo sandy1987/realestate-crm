@@ -8,7 +8,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import { requireTenantContext } from '../middleware/tenant.middleware.js';
-import { requirePermission } from '../middleware/permission.middleware.js';
+import { requirePermission, requirePropertyPermission } from '../middleware/permission.middleware.js';
 import { validate } from '../middleware/validate.middleware.js';
 import { PERMS } from '../constants/permissions.js';
 import {
@@ -31,40 +31,40 @@ router.use(requireTenantContext);
 
 router.post(
   '/',
-  requirePermission(PERMS.PLOTS_WRITE),
+  requirePropertyPermission('write'),
   validate(createPlotSchema),
   plotController.createPlot
 );
 
 router.get(
   '/',
-  requirePermission(PERMS.PLOTS_READ),
+  requirePropertyPermission('read'),
   validate(queryPlotSchema, 'query'),
   plotController.listPlots
 );
 
 router.get(
   '/:plotId',
-  requirePermission(PERMS.PLOTS_READ),
+  requirePropertyPermission('read'),
   plotController.getPlot
 );
 
 router.get(
   '/:plotId/share-whatsapp',
-  requirePermission(PERMS.PLOTS_READ),
+  requirePropertyPermission('read'),
   plotController.getPlotWhatsAppShare
 );
 
 router.patch(
   '/:plotId',
-  requirePermission(PERMS.PLOTS_WRITE),
+  requirePropertyPermission('write'),
   validate(updatePlotSchema),
   plotController.updatePlot
 );
 
 router.delete(
   '/:plotId',
-  requirePermission(PERMS.PLOTS_DELETE),
+  requirePropertyPermission('delete'),
   plotController.deactivatePlot
 );
 

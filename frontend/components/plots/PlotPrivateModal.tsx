@@ -20,7 +20,7 @@ import { Skeleton } from '@/components/ui/Loading';
 import { useAuth } from '@/lib/context/AuthContext';
 import { hasPermission, isSuperAdmin } from '@/lib/utils/permissions';
 import { plotPrivateApi } from '@/lib/api/plotPrivate';
-import { Plot } from '@/types/plot';
+import { Plot, getCategoryPrivateLabels } from '@/types/plot';
 import { PlotPrivate } from '@/types/plotPrivate';
 import { ApiClientError } from '@/lib/api/errors';
 import { formatDate } from '@/lib/utils/formatters';
@@ -132,6 +132,8 @@ export function PlotPrivateModal({
 
   if (!plot) return null;
 
+  const categoryLabels = getCategoryPrivateLabels(plot.category);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogHeader>
@@ -142,10 +144,10 @@ export function PlotPrivateModal({
             </div>
             <div>
               <DialogTitle className="text-base font-bold text-slate-900">
-                Confidential Plot Data
+                {categoryLabels.title}
               </DialogTitle>
               <span className="text-[11px] font-medium text-slate-500">
-                Plot Ref: <strong className="text-slate-800">{plot.plotRef || plot.plotId}</strong>
+                {categoryLabels.refLabel}: <strong className="text-slate-800">{plot.plotRef || plot.plotId}</strong>
               </span>
             </div>
           </div>
@@ -176,7 +178,7 @@ export function PlotPrivateModal({
             </div>
             <h4 className="text-xs font-bold text-amber-900">Access Restricted</h4>
             <p className="text-[11px] text-amber-800 mt-1 max-w-sm mx-auto">
-              You do not have permission to view confidential owner and source details for this plot.
+              You do not have permission to view confidential owner and source details for this {categoryLabels.itemType}.
               Contact your firm administrator if you require <code className="font-mono bg-amber-100 px-1 py-0.5 rounded">private:read</code> access.
             </p>
           </div>
@@ -208,7 +210,7 @@ export function PlotPrivateModal({
             </div>
             <h4 className="text-xs font-semibold text-slate-800">No Private Record Found</h4>
             <p className="text-[11px] text-slate-500 mt-1 max-w-xs mx-auto">
-              No private owner or referrer information has been recorded for this plot yet.
+              No private owner or referrer information has been recorded for this {categoryLabels.itemType} yet.
             </p>
             {canWrite && (
               <div className="mt-4">

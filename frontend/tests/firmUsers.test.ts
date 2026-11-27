@@ -77,6 +77,10 @@ describe('Firm Users & Staff Administration Feature API', () => {
     expect(ALL_STAFF_PERMISSIONS).toContain('plots:write');
     expect(ALL_STAFF_PERMISSIONS).toContain('plots:delete');
     expect(ALL_STAFF_PERMISSIONS).toContain('plots:export');
+    expect(ALL_STAFF_PERMISSIONS).toContain('houses:read');
+    expect(ALL_STAFF_PERMISSIONS).toContain('houses:write');
+    expect(ALL_STAFF_PERMISSIONS).toContain('agricultural:read');
+    expect(ALL_STAFF_PERMISSIONS).toContain('rentals:read');
     expect(ALL_STAFF_PERMISSIONS).toContain('colonies:read');
     expect(ALL_STAFF_PERMISSIONS).toContain('colonies:write');
     expect(ALL_STAFF_PERMISSIONS).toContain('private:read');

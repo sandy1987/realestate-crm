@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { CreateStaffInput, ALL_STAFF_PERMISSIONS, UserPermission } from '@/types/user';
+import { CreateStaffInput, ADVISOR_PERMISSION_GROUPS, UserPermission } from '@/types/user';
 import { firmUsersApi } from '@/lib/api/firmUsers';
 import { ApiClientError } from '@/lib/api/errors';
 import { AlertCircle, Shield } from 'lucide-react';
@@ -199,35 +199,73 @@ export function CreateStaffModal({ open, onOpenChange, onSuccess }: CreateStaffM
         </div>
 
         {/* Permissions Selection Checklist */}
-        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-2.5">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-3 max-h-[380px] overflow-y-auto">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
             <Shield className="h-4 w-4 text-slate-600" />
             <span>Assigned Operational Permissions</span>
           </div>
           <p className="text-[11px] text-slate-500">
-            Select the granular capabilities granted to this staff account.
+            Select the granular capabilities granted to this advisor account across property categories.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-            {ALL_STAFF_PERMISSIONS.map((perm) => {
-              const isChecked = formData.permissions.includes(perm);
+          <div className="space-y-3 pt-1">
+            {ADVISOR_PERMISSION_GROUPS.map((group) => {
+              const allChecked = group.permissions.every((p) => formData.permissions.includes(p.key));
+              const toggleGroup = () => {
+                setFormData((prev) => {
+                  const groupKeys = group.permissions.map((p) => p.key);
+                  if (allChecked) {
+                    return {
+                      ...prev,
+                      permissions: prev.permissions.filter((k) => !groupKeys.includes(k)),
+                    };
+                  } else {
+                    const newPerms = Array.from(new Set([...prev.permissions, ...groupKeys]));
+                    return { ...prev, permissions: newPerms };
+                  }
+                });
+              };
+
               return (
-                <label
-                  key={perm}
-                  className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
-                    isChecked
-                      ? 'border-blue-300 bg-blue-50/60 text-slate-900 font-medium'
-                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => togglePermission(perm)}
-                    className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                  />
-                  <code className="font-mono text-[11px]">{perm}</code>
-                </label>
+                <div key={group.id} className="rounded-lg border border-slate-200 bg-white p-3 space-y-2">
+                  <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                    <div>
+                      <span className="text-xs font-semibold text-slate-900 block">{group.title}</span>
+                      <span className="text-[10px] text-slate-500">{group.description}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={toggleGroup}
+                      className="text-[11px] font-medium text-slate-600 hover:text-slate-900 cursor-pointer underline"
+                    >
+                      {allChecked ? 'Deselect All' : 'Select All'}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    {group.permissions.map((perm) => {
+                      const isChecked = formData.permissions.includes(perm.key);
+                      return (
+                        <label
+                          key={perm.key}
+                          className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
+                            isChecked
+                              ? 'border-blue-300 bg-blue-50/60 text-slate-900 font-medium'
+                              : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => togglePermission(perm.key)}
+                            className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                          <code className="font-mono text-[11px]">{perm.label}</code>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </div>

@@ -7,11 +7,29 @@
  */
 
 export const PERMS = Object.freeze({
-  // Plots
+  // Plots & Land Inventory
   PLOTS_READ:   'plots:read',
   PLOTS_WRITE:  'plots:write',
   PLOTS_DELETE: 'plots:delete',
   PLOTS_EXPORT: 'plots:export',
+
+  // Houses & Flats Inventory
+  HOUSES_READ:   'houses:read',
+  HOUSES_WRITE:  'houses:write',
+  HOUSES_DELETE: 'houses:delete',
+  HOUSES_EXPORT: 'houses:export',
+
+  // Agricultural Land Inventory
+  AGRICULTURAL_READ:   'agricultural:read',
+  AGRICULTURAL_WRITE:  'agricultural:write',
+  AGRICULTURAL_DELETE: 'agricultural:delete',
+  AGRICULTURAL_EXPORT: 'agricultural:export',
+
+  // Rental Properties Inventory
+  RENTALS_READ:   'rentals:read',
+  RENTALS_WRITE:  'rentals:write',
+  RENTALS_DELETE: 'rentals:delete',
+  RENTALS_EXPORT: 'rentals:export',
 
   // Colonies
   COLONIES_READ:  'colonies:read',

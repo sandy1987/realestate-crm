@@ -39,7 +39,7 @@ export interface AgriFormModalProps {
   onSuccess: () => void;
 }
 
-const AGRI_SIZE_UNITS: PlotSizeUnit[] = ['acre', 'bigha', 'marla', 'kanal', 'gaj', 'sqyd', 'sqft', 'sqm'];
+const AGRI_SIZE_UNITS: PlotSizeUnit[] = ['acre', 'kanal', 'marla', 'gaj', 'sqyd', 'sqft', 'sqm'];
 
 const WATER_SOURCES = [
   'Canal Water (Nahar)',

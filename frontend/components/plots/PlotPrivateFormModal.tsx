@@ -19,7 +19,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Plot } from '@/types/plot';
+import { Plot, getCategoryPrivateLabels } from '@/types/plot';
 import { PlotPrivate, UpsertPlotPrivateInput } from '@/types/plotPrivate';
 import { plotPrivateApi } from '@/lib/api/plotPrivate';
 import { ApiClientError } from '@/lib/api/errors';
@@ -213,6 +213,8 @@ export function PlotPrivateFormModal({
 
   if (!plot) return null;
 
+  const categoryLabels = getCategoryPrivateLabels(plot.category);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogHeader>
@@ -222,10 +224,10 @@ export function PlotPrivateFormModal({
           </div>
           <div>
             <DialogTitle className="text-base font-bold text-slate-900">
-              {isEditing ? 'Edit Confidential Details' : 'Record Confidential Details'}
+              {isEditing ? categoryLabels.editTitle : categoryLabels.recordTitle}
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
-              Plot Ref: <strong className="text-slate-800">{plot.plotRef || plot.plotId}</strong>
+              {categoryLabels.refLabel}: <strong className="text-slate-800">{plot.plotRef || plot.plotId}</strong>
             </DialogDescription>
           </div>
         </div>

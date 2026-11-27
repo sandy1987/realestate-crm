@@ -15,7 +15,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
-import { Plot } from '@/types/plot';
+import { Plot, getCategoryPrivateLabels } from '@/types/plot';
 import { plotPrivateApi } from '@/lib/api/plotPrivate';
 import { ApiClientError } from '@/lib/api/errors';
 import { AlertTriangle } from 'lucide-react';
@@ -38,6 +38,8 @@ export function DeletePlotPrivateModal({
 
   if (!plot) return null;
 
+  const categoryLabels = getCategoryPrivateLabels(plot.category);
+
   const handleDelete = async () => {
     setIsDeleting(true);
     setError(null);
@@ -49,7 +51,7 @@ export function DeletePlotPrivateModal({
     } catch (err: unknown) {
       if (err instanceof ApiClientError) {
         if (err.status === 403) {
-          setError('You do not have permission to delete confidential plot data.');
+          setError(`You do not have permission to delete confidential ${categoryLabels.itemType} data.`);
         } else if (err.code === 'PRIVATE_RECORD_NOT_FOUND') {
           // Already deleted
           onSuccess();
@@ -78,7 +80,7 @@ export function DeletePlotPrivateModal({
               Delete Confidential Records?
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500 mt-0.5">
-              Target Plot: <strong className="text-slate-800">{plot.plotRef || plot.plotId}</strong>
+              {categoryLabels.refLabel}: <strong className="text-slate-800">{plot.plotRef || plot.plotId}</strong>
             </DialogDescription>
           </div>
         </div>
@@ -95,8 +97,8 @@ export function DeletePlotPrivateModal({
           <p className="font-semibold mb-1">Permanent Confidential Data Removal</p>
           <p className="text-[11px] text-amber-800">
             This will permanently remove the private owner identity, phone numbers, contact address,
-            source attribution, and confidential notes attached to this plot.
-            The public plot inventory listing will remain active.
+            source attribution, and confidential notes attached to this {categoryLabels.itemType}.
+            The public {categoryLabels.itemType} inventory listing will remain active.
           </p>
         </div>
       </div>

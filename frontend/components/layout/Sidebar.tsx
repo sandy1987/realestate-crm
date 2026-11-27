@@ -27,7 +27,7 @@ interface NavItem {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   roleRequirement?: 'ALL' | 'TENANT_ONLY' | 'FIRM_ADMIN_ONLY' | 'PLATFORM_ONLY' | 'ADMINS_ONLY';
-  permissionRequirement?: string;
+  permissionRequirement?: string | string[];
 }
 
 const allNavItems: NavItem[] = [
@@ -51,21 +51,21 @@ const allNavItems: NavItem[] = [
     href: '/houses',
     icon: Home,
     roleRequirement: 'TENANT_ONLY',
-    permissionRequirement: 'plots:read',
+    permissionRequirement: ['houses:read', 'plots:read'],
   },
   {
     name: 'Rental Properties',
     href: '/rentals',
     icon: KeyRound,
     roleRequirement: 'TENANT_ONLY',
-    permissionRequirement: 'plots:read',
+    permissionRequirement: ['rentals:read', 'plots:read'],
   },
   {
     name: 'Agricultural Land',
     href: '/agricultural',
     icon: Sprout,
     roleRequirement: 'TENANT_ONLY',
-    permissionRequirement: 'plots:read',
+    permissionRequirement: ['agricultural:read', 'plots:read'],
   },
   {
     name: 'Firm Management',
@@ -123,7 +123,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         return false;
       }
       if (item.permissionRequirement) {
-        return user?.permissions?.includes(item.permissionRequirement as UserPermission);
+        const required = Array.isArray(item.permissionRequirement)
+          ? item.permissionRequirement
+          : [item.permissionRequirement];
+        return required.some((perm) => user?.permissions?.includes(perm as UserPermission));
       }
       return true;
     }

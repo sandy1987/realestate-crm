@@ -39,6 +39,44 @@ export type HouseType =
   | 'studio'
   | string;
 
+export function getCategoryPrivateLabels(category?: PropertyCategory | string | null) {
+  switch (category) {
+    case 'rental':
+      return {
+        title: 'Confidential Rental Data',
+        refLabel: 'Rental Code',
+        itemType: 'rental property',
+        editTitle: 'Edit Confidential Rental Details',
+        recordTitle: 'Record Confidential Rental Details',
+      };
+    case 'house':
+      return {
+        title: 'Confidential House / Flat Data',
+        refLabel: 'Property Ref',
+        itemType: 'house / flat',
+        editTitle: 'Edit Confidential House / Flat Details',
+        recordTitle: 'Record Confidential House / Flat Details',
+      };
+    case 'agricultural':
+      return {
+        title: 'Confidential Agricultural Land Data',
+        refLabel: 'Land Ref',
+        itemType: 'agricultural land',
+        editTitle: 'Edit Confidential Land Details',
+        recordTitle: 'Record Confidential Land Details',
+      };
+    case 'plot':
+    default:
+      return {
+        title: 'Confidential Plot Data',
+        refLabel: 'Plot Ref',
+        itemType: 'plot',
+        editTitle: 'Edit Confidential Details',
+        recordTitle: 'Record Confidential Details',
+      };
+  }
+}
+
 export interface PlotImage {
   url: string;
   publicId?: string | null;

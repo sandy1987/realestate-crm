@@ -57,9 +57,9 @@ export default function AgriculturalPage() {
 
   const isPlatformAdmin = isSuperAdmin(user);
   const isFirmAdmin = user?.role === 'FIRM_ADMIN';
-  const canRead = hasPermission(user, 'plots:read');
-  const canWrite = hasPermission(user, 'plots:write');
-  const canDelete = hasPermission(user, 'plots:delete');
+  const canRead = hasPermission(user, 'agricultural:read') || hasPermission(user, 'plots:read');
+  const canWrite = hasPermission(user, 'agricultural:write') || hasPermission(user, 'plots:write');
+  const canDelete = hasPermission(user, 'agricultural:delete') || hasPermission(user, 'plots:delete');
   const canReadPrivate = !isPlatformAdmin && hasPermission(user, 'private:read');
 
   const [lands, setLands] = useState<Plot[]>([]);
@@ -642,11 +642,11 @@ export default function AgriculturalPage() {
           open={privateModalOpen}
           onOpenChange={setPrivateModalOpen}
           plot={selectedForPrivate}
-          onEditClick={(plotToEdit, privateData) => {
-            setInitialPrivateDataForEdit(privateData);
+          onEditClick={(existingData) => {
+            setInitialPrivateDataForEdit(existingData);
             setPrivateFormModalOpen(true);
           }}
-          onDeleteClick={(plotToDelete) => {
+          onDeleteClick={() => {
             setDeletePrivateModalOpen(true);
           }}
         />

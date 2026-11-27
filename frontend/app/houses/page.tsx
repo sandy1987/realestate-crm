@@ -57,9 +57,9 @@ export default function HousesPage() {
 
   const isPlatformAdmin = isSuperAdmin(user);
   const isFirmAdmin = user?.role === 'FIRM_ADMIN';
-  const canRead = hasPermission(user, 'plots:read');
-  const canWrite = hasPermission(user, 'plots:write');
-  const canDelete = hasPermission(user, 'plots:delete');
+  const canRead = hasPermission(user, 'houses:read') || hasPermission(user, 'plots:read');
+  const canWrite = hasPermission(user, 'houses:write') || hasPermission(user, 'plots:write');
+  const canDelete = hasPermission(user, 'houses:delete') || hasPermission(user, 'plots:delete');
   const canReadPrivate = !isPlatformAdmin && hasPermission(user, 'private:read');
 
   const [properties, setProperties] = useState<Plot[]>([]);
@@ -615,7 +615,7 @@ export default function HousesPage() {
                             variant="ghost"
                             onClick={() => handleViewPrivate(prop)}
                             className="h-8 w-8 p-0 hover:text-amber-600"
-                            title="Private owner details"
+                            title="Confidential House / Flat Owner details"
                           >
                             <Lock className="h-3.5 w-3.5 text-amber-500" />
                           </Button>
@@ -733,7 +733,7 @@ export default function HousesPage() {
           onOpenChange={setPrivateModalOpen}
           plot={selectedForPrivate}
           onEditClick={handleOpenPrivateForm}
-          onDeleteSuccess={handleRefresh}
+          onDeleteClick={() => setDeletePrivateModalOpen(true)}
         />
       )}
 

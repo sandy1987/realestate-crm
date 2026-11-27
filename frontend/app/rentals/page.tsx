@@ -56,9 +56,9 @@ export default function RentalsPage() {
 
   const isPlatformAdmin = isSuperAdmin(user);
   const isFirmAdmin = user?.role === 'FIRM_ADMIN';
-  const canRead = hasPermission(user, 'plots:read');
-  const canWrite = hasPermission(user, 'plots:write');
-  const canDelete = hasPermission(user, 'plots:delete');
+  const canRead = hasPermission(user, 'rentals:read') || hasPermission(user, 'plots:read');
+  const canWrite = hasPermission(user, 'rentals:write') || hasPermission(user, 'plots:write');
+  const canDelete = hasPermission(user, 'rentals:delete') || hasPermission(user, 'plots:delete');
   const canReadPrivate = !isPlatformAdmin && hasPermission(user, 'private:read');
 
   const [properties, setProperties] = useState<Plot[]>([]);
@@ -520,7 +520,7 @@ export default function RentalsPage() {
                               setPrivateModalOpen(true);
                             }}
                             className="h-8 w-8 p-0 hover:text-amber-600"
-                            title="Confidential Owner/Tenant details"
+                            title="Confidential Rental Owner details"
                           >
                             <Lock className="h-3.5 w-3.5 text-amber-500" />
                           </Button>
@@ -631,11 +631,11 @@ export default function RentalsPage() {
           open={privateModalOpen}
           onOpenChange={setPrivateModalOpen}
           plot={selectedForPrivate}
-          onEditClick={(plotToEdit, privateData) => {
-            setInitialPrivateDataForEdit(privateData);
+          onEditClick={(existingData) => {
+            setInitialPrivateDataForEdit(existingData);
             setPrivateFormModalOpen(true);
           }}
-          onDeleteClick={(plotToDelete) => {
+          onDeleteClick={() => {
             setDeletePrivateModalOpen(true);
           }}
         />
